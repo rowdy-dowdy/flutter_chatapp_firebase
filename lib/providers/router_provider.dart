@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/pages/home_page.dart';
 import 'package:flutter_chatapp_firebase/pages/landing_page.dart';
 import 'package:flutter_chatapp_firebase/pages/login_page.dart';
+import 'package:flutter_chatapp_firebase/pages/otp_page.dart';
+import 'package:flutter_chatapp_firebase/pages/user_info_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,6 +49,16 @@ class RouterNotifier extends ChangeNotifier {
       name: 'login',
       path: '/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      name: 'otp',
+      path: '/otp',
+      builder: (context, state) => OTPPage(verificationId: state.queryParams['verificationId']!),
+    ),
+    GoRoute(
+      name: 'user-info',
+      path: '/user-info',
+      builder: (context, state) => const UserInfoPage(),
     ),
   ];
 }

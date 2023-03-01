@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
+import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_chatapp_firebase/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:country_picker/country_picker.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -13,11 +16,30 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final phoneControler = TextEditingController();
+  Country? country;
 
   @override
   void dispose() {
     super.dispose();
     phoneControler.dispose();
+  }
+
+  void pickCountry() {
+    showCountryPicker(context: context, onSelect: (onSelect) {
+      setState(() {
+        country = onSelect;
+      });
+    });
+  }
+
+  void sendPhoneNumber () {
+    String phoneNumber = phoneControler.text.trim();
+    if (country != null && phoneNumber.isNotEmpty) {
+      ref.read(authControllerProvider).signInWithPhone(context, "+${country!.phoneCode}$phoneNumber");
+    }
+    else {
+      showSnackBar(context: context, content: "Fill out all the fields");
+    }
   }
 
   @override
@@ -53,7 +75,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const Text("WhatsApp will need to verify your phone number."),
                 const SizedBox(height: 10,),
                 TextButton(
-                  onPressed: () {}, 
+                  onPressed: pickCountry, 
                   child: const Text("Pick Country")
                 ),
                 const SizedBox(height: 5,),
@@ -61,7 +83,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("+84"),
+                    if (country != null) ...[
+                      Text("+ ${country!.phoneCode}"),
+                    ],
                     const SizedBox(width: 10,),
                     SizedBox(
                       width: size.width * 0.7,
@@ -79,7 +103,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SizedBox(
                   width: 90,
                   child: ButtonCustom(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () => sendPhoneNumber(),
                     text: "NEXT", 
                   )
                 ),

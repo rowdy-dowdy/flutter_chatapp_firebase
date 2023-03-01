@@ -15,7 +15,8 @@ class LandingPage extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
+          child: Container(
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Column(
               children: [
@@ -29,7 +30,7 @@ class LandingPage extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: size.height / 9,),
-                Image.asset("assets/bg.png", height: 340, width: 340, color: tabColor,),
+                Image.asset("assets/img/bg.png", height: 340, width: 340, color: tabColor,),
                 SizedBox(height: size.height / 9,),
                 const Text(
                   "Read your Privacy Policy. Tap \"Agree and continue\" to accept the Terms of Services",
