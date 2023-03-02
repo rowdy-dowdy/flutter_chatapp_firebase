@@ -1,58 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
+import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
-class OTPPage extends ConsumerWidget {
+class OTPPage extends ConsumerStatefulWidget {
   final String verificationId;
   const OTPPage({required this.verificationId, super.key});
 
-  void verifyOTP (BuildContext context, WidgetRef ref, String smsCode) {
-    ref.read(authControllerProvider).verifyOTP(context, verificationId, smsCode);
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _OTPPageState();
+}
+
+class _OTPPageState extends ConsumerState<OTPPage> {
+  String smsCode = "";
+
+  void verifyOTP () {
+    ref.read(authControllerProvider.notifier).verifyOTP(context, widget.verificationId, smsCode.trim());
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
 
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Verify your phone number"),
-        elevation: 0,
-        backgroundColor: backgroundColor,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        ),
-      ),
       body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20,),
           child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 20,),
-              const Text("We have sent an SMS with a code"),
-              SizedBox(
-                width: size.width * 0.5,
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  decoration: const InputDecoration(
-                    hintText: '- - - - - -',
-                    hintStyle: TextStyle(
-                      fontSize: 30
-                    )
+              const SizedBox(height: 50,),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(child: Image.asset("img/cat3.png", width: 300)),
+                      // const SizedBox(height: 10),
+                      const Text(
+                        "Verification",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      OtpTextField(
+                        numberOfFields: 6,
+                        fillColor: Colors.black.withOpacity(.1),
+                        filled: true,
+                        onCodeChanged: (String code) {
+                          smsCode = code;
+                          setState(() {});
+                        },
+                        onSubmit: (String verificationCode) {
+                          smsCode = verificationCode;
+                          setState(() {});
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "We have sent an SMS with a code",
+                        style: TextStyle(
+                          color: greyColor
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) {
-                    if (val.length == 6) {
-                      verifyOTP(context, ref, val.trim());
-                    }
-                  },
                 ),
-              )
+              ),
+              SizedBox(
+                child: ElevatedButton(
+                  onPressed: () => smsCode.length == 6 ? verifyOTP() : null,
+                  style: smsCode.length != 6 ? ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey
+                  ) : null,
+                  child: const Text("Verify"), 
+                )
+              ),
+              const SizedBox(height: 20,),
             ],
           ),
         ),

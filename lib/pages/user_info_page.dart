@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
+import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,7 +32,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   void saveUserInfo() async {
     String name = nameController.text.trim();
     if (name.isNotEmpty) {
-      ref.read(authControllerProvider).saveUserDataToFirebase(context, image, name);
+      ref.read(authRepositoryProvider).saveUserDataToFirebase(context, image, name);
     }
   }
 
@@ -58,7 +59,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                   children: [
                     image == null ?  const CircleAvatar(
                       backgroundImage: AssetImage(
-                        'assets/img/user.png'
+                        'img/user.png'
                       ),
                       backgroundColor: Colors.grey,
                       radius: 64,

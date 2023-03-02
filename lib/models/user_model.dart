@@ -36,7 +36,7 @@ class UserModel {
       profilePic: map['profilePic'] as String,
       isOnline: map['isOnline'] as bool,
       phoneNumber: map['phoneNumber'] as String,
-      groupId: List<String>.from((map['groupId'] as List<String>)),
+      groupId: List<String>.from((map['groupId'] as List<dynamic>)),
     );
   }
 

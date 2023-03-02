@@ -1,44 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/models/auth_model.dart';
 import 'package:flutter_chatapp_firebase/pages/home_page.dart';
 import 'package:flutter_chatapp_firebase/pages/landing_page.dart';
+import 'package:flutter_chatapp_firebase/pages/loading_page.dart';
 import 'package:flutter_chatapp_firebase/pages/login_page.dart';
+import 'package:flutter_chatapp_firebase/pages/message_page.dart';
 import 'package:flutter_chatapp_firebase/pages/otp_page.dart';
 import 'package:flutter_chatapp_firebase/pages/user_info_page.dart';
+import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+  final List<String> loginPages = ["/landing", "/login", "/otp", "/user-info"];
 
   RouterNotifier(this._ref) {
-    // _ref.listen(authProvider, 
-    // (_, __) => notifyListeners());
+    _ref.listen(authControllerProvider, 
+    (_, __) => notifyListeners());
   }
 
-  // String? _redirect_login(_, GoRouterState state) {
-  //   final authSate = _ref.read(authProvider).authSate;
+  String? _redirectLogin(_, GoRouterState state) {
+    final authSate = _ref.read(authControllerProvider).authState;
     
-  //   if (authSate == AuthSate.initial) return null;
+    if (authSate == AuthState.initial) return null;
 
-  //   final are_we_loggin_in = state.location == "/login";
+    final areWeLoginIn = loginPages.indexWhere((e) => e == state.subloc);
 
-  //   if (authSate != AuthSate.login) {
-  //     if (state.location == '/loading') {
+    if (authSate != AuthState.login) {
+      return areWeLoginIn >= 0 ? null : '/landing';
+    }
 
-  //     }
-  //     return are_we_loggin_in ? null : '/login';
-  //   }
+    if (areWeLoginIn >= 0 || state.subloc == "/loading") return '/';
 
-  //   if (are_we_loggin_in || state.location == '/loading') return '/';
-
-  //   return null;    
-  // }
+    return null;    
+  }
 
   List<RouteBase> get _routers => [
     GoRoute(
-      name: 'home',
+      name: 'loading',
+      path: '/loading',
+      builder: (context, state) => const LoadingPage(),
+    ),
+    GoRoute(
+      name: 'chat',
       path: '/',
       builder: (context, state) => const HomePage(),
+      routes: [
+        GoRoute(
+          name: 'chat-detail',
+          path: '/chats/:id',
+          builder: (context, state) => MessagePage(id: state.params['id']!),
+        ),
+      ]
     ),
     GoRoute(
       name: 'landing',
@@ -67,10 +81,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/landing',
+    initialLocation: '/',
     debugLogDiagnostics: true,
     refreshListenable: router,
-    // redirect: router._redirect_login,
+    // redirect: router._redirectLogin,
     routes: router._routers
   );
 });

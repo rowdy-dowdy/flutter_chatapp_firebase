@@ -5,7 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/models/auth_model.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
+import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,11 +45,6 @@ class AuthRepository {
         },
         codeSent: ((String verificationId, int? resendToken) async {
           context.go('/otp?verificationId=$verificationId');
-          // Navigator.pushNamed(
-          //   context,
-          //   OTPScreen.routeName,
-          //   arguments: verificationId,
-          // );
         }),
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
@@ -62,7 +59,18 @@ class AuthRepository {
       await auth.signInWithCredential(credential);
 
       if (context.mounted) {
-        context.go('/user-info');
+        UserModel? user = await getCurrentUserData();
+        if (user != null) {
+          ref.read(authControllerProvider.notifier).state = AuthModel(user: user, authState: AuthState.login);
+          if (context.mounted) {
+            context.go('/');
+          }
+        } 
+        else {
+          if (context.mounted) {
+            context.go('/user-info');
+          }
+        }
       }
     } on FirebaseAuthException catch (e) {
       showSnackBar(context: context, content: e.message!);
@@ -76,8 +84,6 @@ class AuthRepository {
       if (file != null) {
         imageUrl = await ref.read(firebaseStoreRepositoryProvider).storeFileToFIrebase('profilePic/$uid', file);
       }
-
-      print(imageUrl);
 
       UserModel user = UserModel(
         name: name, 
@@ -96,6 +102,18 @@ class AuthRepository {
     } on FirebaseAuthException catch (e) {
       showSnackBar(context: context, content: e.message!);
     }
+  }
+
+  Stream<UserModel> userDataById(String uid) {
+    return firestore.collection('users')
+      .doc(uid).snapshots()
+      .map((event) => UserModel.fromMap(event.data()!));
+  }
+
+  void setUserState(bool isOnline) async {
+    await firestore.collection('users').doc(auth.currentUser!.uid).update({
+      'isOnline': isOnline,
+    });
   }
 }
 

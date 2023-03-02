@@ -26,10 +26,45 @@ class MyApp extends ConsumerWidget {
       scrollBehavior: MaterialScrollBehavior().copyWith(
         dragDevices: {PointerDeviceKind.mouse, PointerDeviceKind.touch, PointerDeviceKind.stylus, PointerDeviceKind.unknown},
       ),
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: backgroundColor,
+      theme: ThemeData.light().copyWith(
         appBarTheme: const AppBarTheme(
-          color: appBarColor
+          color: Colors.transparent,
+          elevation: 0,
+          foregroundColor: primary
+        ),
+        // scaffoldBackgroundColor: primary4,
+        primaryColor: primary,
+        indicatorColor: primary2,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primary2,
+            minimumSize: const Size(double.infinity, 48),
+            elevation: 0.0,
+            shadowColor: Colors.transparent,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: primary
+          )
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: primary),
+        ),
+        iconTheme: const IconThemeData(
+          color: primary
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          labelStyle: TextStyle(color: primary),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              style: BorderStyle.solid, 
+              color: primary
+          ),
+          )
+        ),
+        tabBarTheme: const TabBarTheme(
+          labelColor: primary,
         )
       ),
       // darkTheme: ThemeData.dark(),

@@ -14,41 +14,52 @@ class LandingPage extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 50,),
-                const Text(
-                  "Wellcome to WhatsApp",
-                  style: TextStyle(
-                    fontSize: 33,
-                    fontWeight: FontWeight.w600
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20,),
+          child: Column(
+            children: [
+              const SizedBox(height: 50,),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 300,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset("img/cat1.png"),
+                        // const SizedBox(height: 10),
+                        const Text(
+                          "Wellcome to WhatsApp",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 15),
+                        const Text(
+                          "Read your Privacy Policy. Tap \"Agree and continue\" to accept the Terms of Services",
+                          style: TextStyle(
+                            color: greyColor
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                SizedBox(height: size.height / 9,),
-                Image.asset("assets/img/bg.png", height: 340, width: 340, color: tabColor,),
-                SizedBox(height: size.height / 9,),
-                const Text(
-                  "Read your Privacy Policy. Tap \"Agree and continue\" to accept the Terms of Services",
-                  style: TextStyle(
-                    color: greyColor
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: size.width * .75,
-                  child: ButtonCustom(
-                    onPressed: () => context.go('/login'),
-                    text: "AGREE TO CONTINUE", 
-                  )
+              ),
+              SizedBox(
+                child: ElevatedButton(
+                  onPressed: () => context.go('/login'),
+                  child: const Text("AGREE TO CONTINUE"), 
                 )
-              ],
-            ),
+              ),
+              const SizedBox(height: 20,),
+            ],
           ),
         ),
       ),
