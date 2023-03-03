@@ -7,6 +7,7 @@ import 'package:flutter_chatapp_firebase/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +34,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
-  void sendPhoneNumber () {
+  void loginWithGithub() {
+    print('login');
+    ref.read(authRepositoryProvider).signInWithGithub(context);
+  }
+
+  void sendPhoneNumber() {
     String phoneNumber = phoneController.text.trim();
     if (country != null && phoneNumber.isNotEmpty) {
       ref.read(authRepositoryProvider).signInWithPhone(context, "+${country!.phoneCode}$phoneNumber");
@@ -75,6 +81,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 15),
+                      const Text(
+                        "WhatsApp will need to verify your phone number",
+                        style: TextStyle(
+                          color: greyColor
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 15),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
                         decoration: BoxDecoration(
@@ -105,11 +119,59 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 20),
                       const Text(
-                        "WhatsApp will need to verify your phone number",
+                        "Or login with Social Network",
                         style: TextStyle(
                           color: greyColor
                         ),
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 10,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: blue,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            alignment: Alignment.center,
+                            child: SvgPicture.asset(
+                              "svg/bxl-facebook.svg",
+                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                            )
+                          ),
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: yellow,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            alignment: Alignment.center,
+                            child: SvgPicture.asset(
+                              "svg/bxl-google.svg",
+                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                            )
+                          ),
+                          InkWell(
+                            onTap: loginWithGithub,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: primary,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              alignment: Alignment.center,
+                              child: SvgPicture.asset(
+                                "svg/bxl-github.svg",
+                                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                              )
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
                     ],

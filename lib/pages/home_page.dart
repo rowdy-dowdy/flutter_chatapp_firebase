@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/models/chat_model.dart';
+import 'package:flutter_chatapp_firebase/models/contact_model.dart';
+import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/widgets/main_bottom_navbar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -122,7 +126,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
-                          hintText: 'Search',
+                          hintText: 'Search chat or something here',
                           isDense: true,                      // Added this
                           contentPadding: EdgeInsets.all(0)
                         ),
@@ -159,84 +163,106 @@ class BodyListContact extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: 20,
-          itemBuilder: (context, index) {
-            return InkWell(
-              onTap: () => context.go('/chats/fdsfasdf'),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: primary,
-                        image: DecorationImage(
-                          image: NetworkImage("url"),
-                          fit: BoxFit.cover,
-                        )
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+        child: StreamBuilder<List<ChatModel>>(
+          stream: ref.watch(chatControllerProvider).getContacts(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 50),
+                child: Center(child: CircularProgressIndicator())
+              );
+            }
+            if (snapshot.data == null || snapshot.data!.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: const Text("You don't have any friends 😢"),
+              );
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                var contact = snapshot.data![index];
+                return Container(
+                  margin: EdgeInsets.only(bottom: index == 20 - 1 ? 70 : 0),
+                  child: InkWell(
+                    onTap: () => context.go('/chats/${contact.contactId}'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: primary,
+                              image: DecorationImage(
+                                image: NetworkImage(contact.profilePic),
+                                fit: BoxFit.cover,
+                              )
+                            ),
+                          ),
+                          const SizedBox(width: 10,),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 3),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          contact.name,
+                                          overflow: TextOverflow.clip,
+                                          style: const TextStyle(fontWeight: FontWeight.w600),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5,),
+                                      Text(DateFormat.Hm().format(contact.timeSent), style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey
+                                      ),)
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3,),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          contact.lastMessage,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5,),
+                                      badges.Badge(
+                                        badgeContent: Text(1.toString(), style: const TextStyle(color: Colors.grey),),
+                                        badgeStyle: const badges.BadgeStyle(
+                                          badgeColor: primary
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 10,),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: const [
-                                Expanded(
-                                  child: Text(
-                                    "Viet Hung",
-                                    overflow: TextOverflow.clip,
-                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(width: 5,),
-                                Text("12:13 PM", style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey
-                                ),)
-                              ],
-                            ),
-                            const SizedBox(height: 3,),
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae magni fugiat, explicabo ad quos voluptatibus? Beatae qui, dolorem vel porro ut enim laborum magnam ipsam quidem dolores, repudiandae recusandae vitae!",
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                                  ),
-                                ),
-                                const SizedBox(width: 5,),
-                                badges.Badge(
-                                  badgeContent: Text(1.toString(), style: const TextStyle(color: Colors.grey),),
-                                  badgeStyle: const badges.BadgeStyle(
-                                    badgeColor: primary
-                                  ),
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
-        ),
+        )
       ),
     );
   }

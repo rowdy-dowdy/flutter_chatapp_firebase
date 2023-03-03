@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
+import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,61 +49,72 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 20,),
-                Stack(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 50,),
+              Expanded(
+                child: Column(
                   children: [
-                    image == null ?  const CircleAvatar(
-                      backgroundImage: AssetImage(
-                        'img/user.png'
-                      ),
-                      backgroundColor: Colors.grey,
-                      radius: 64,
-                    )
-                    : kIsWeb ? CircleAvatar(
-                      backgroundImage: NetworkImage(image!.path),
-                      radius: 64,
-                    )
-                    : CircleAvatar(
-                      backgroundImage: FileImage(image!),
-                      radius: 64,
-                    ),
-                    Positioned(
-                      bottom: -10,
-                      left: 80,
-                      child: IconButton(
-                        onPressed: selectImage,
-                        icon: const Icon(Icons.add_a_photo),
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 20,),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your name'
+                    Stack(
+                      children: [
+                        image == null ?  const CircleAvatar(
+                          backgroundImage: AssetImage(
+                            'img/user.png'
+                          ),
+                          backgroundColor: primary2,
+                          radius: 64,
+                        )
+                        : kIsWeb ? CircleAvatar(
+                          backgroundImage: NetworkImage(image!.path),
+                          radius: 64,
+                        )
+                        : CircleAvatar(
+                          backgroundImage: FileImage(image!),
+                          radius: 64,
                         ),
-                      ),
+                        Positioned(
+                          bottom: -10,
+                          left: 80,
+                          child: IconButton(
+                            onPressed: selectImage,
+                            icon: const Icon(Icons.add_a_photo),
+                          ),
+                        )
+                      ],
                     ),
-                    const SizedBox(width: 10,),
-                    IconButton(
-                      onPressed: saveUserInfo, 
-                      icon: const Icon(Icons.done)
-                    )
+                    const SizedBox(height: 20,),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              prefixIcon: Icon(Icons.person),
+                              border: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: primary),
+                              ),
+                              // prefixIconColor: primary2,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 20,),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20,),
+              SizedBox(
+                child: ElevatedButton(
+                  onPressed: saveUserInfo,
+                  child: const Text("Verify"), 
+                )
+              ),
+              const SizedBox(height: 20,),
+            ],
           ),
         ),
       ),

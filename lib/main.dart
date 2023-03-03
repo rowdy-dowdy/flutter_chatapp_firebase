@@ -23,18 +23,23 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Flutter Chat App',
-      scrollBehavior: MaterialScrollBehavior().copyWith(
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
         dragDevices: {PointerDeviceKind.mouse, PointerDeviceKind.touch, PointerDeviceKind.stylus, PointerDeviceKind.unknown},
       ),
-      theme: ThemeData.light().copyWith(
+      theme: ThemeData(
         appBarTheme: const AppBarTheme(
           color: Colors.transparent,
           elevation: 0,
           foregroundColor: primary
         ),
         // scaffoldBackgroundColor: primary4,
+        // primarySwatch: primary,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: primary2,
+        ),
         primaryColor: primary,
         indicatorColor: primary2,
+        primaryColorLight: primary,
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primary2,
@@ -65,6 +70,9 @@ class MyApp extends ConsumerWidget {
         ),
         tabBarTheme: const TabBarTheme(
           labelColor: primary,
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: primary
         )
       ),
       // darkTheme: ThemeData.dark(),

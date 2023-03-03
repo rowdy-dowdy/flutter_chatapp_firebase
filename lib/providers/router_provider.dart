@@ -49,8 +49,8 @@ class RouterNotifier extends ChangeNotifier {
       routes: [
         GoRoute(
           name: 'chat-detail',
-          path: '/chats/:id',
-          builder: (context, state) => MessagePage(id: state.params['id']!),
+          path: 'chats/:id',
+          builder: (context, state) => MessagePage(id: state.params['id']),
         ),
       ]
     ),

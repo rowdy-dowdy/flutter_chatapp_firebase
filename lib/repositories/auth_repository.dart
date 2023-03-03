@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/models/auth_model.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
@@ -77,6 +78,36 @@ class AuthRepository {
     }
   }
 
+  void signInWithGithub(BuildContext context) async {
+    try {
+      GithubAuthProvider githubProvider = GithubAuthProvider();
+
+      if (kIsWeb) {
+        await auth.signInWithPopup(githubProvider);
+      }
+      else {
+        await auth.signInWithProvider(githubProvider);
+      }
+
+      if (context.mounted) {
+        UserModel? user = await getCurrentUserData();
+        if (user != null) {
+          ref.read(authControllerProvider.notifier).state = AuthModel(user: user, authState: AuthState.login);
+          if (context.mounted) {
+            context.go('/');
+          }
+        } 
+        else {
+          if (context.mounted) {
+            context.go('/user-info');
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      showSnackBar(context: context, content: e.message!);
+    }
+  }
+
   void saveUserDataToFirebase(BuildContext context, File? file, String name) async {
     try {
       String uid = auth.currentUser!.uid;
@@ -90,12 +121,13 @@ class AuthRepository {
         uid: uid, 
         profilePic: imageUrl, 
         isOnline: true, 
-        phoneNumber: auth.currentUser!.phoneNumber!, 
+        phoneNumber: auth.currentUser!.phoneNumber ?? "", 
         groupId: []
       );
 
       firestore.collection('users').doc(uid).set(user.toMap());
 
+      ref.read(authControllerProvider.notifier).state = AuthModel(user: user, authState: AuthState.login);
       if (context.mounted) {
         context.go('/');
       }
@@ -116,7 +148,6 @@ class AuthRepository {
     });
   }
 }
-
 
 final authRepositoryProvider = Provider((ref) {
   return AuthRepository(auth: FirebaseAuth.instance, firestore: FirebaseFirestore.instance, ref: ref);
