@@ -35,8 +35,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void loginWithGithub() {
-    print('login');
     ref.read(authRepositoryProvider).signInWithGithub(context);
+  }
+
+  void loginWithFacebook() {
+    ref.read(authRepositoryProvider).signInWithFacebook(context);
+  }
+  void loginWithGoogle() {
+    ref.read(authRepositoryProvider).signInWithGoogle(context);
   }
 
   void sendPhoneNumber() {
@@ -129,31 +135,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       Wrap(
                         spacing: 10,
                         children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: blue,
-                              borderRadius: BorderRadius.circular(5),
+                          InkWell(
+                            onTap: loginWithFacebook,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: blue,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              alignment: Alignment.center,
+                              child: SvgPicture.asset(
+                                "svg/bxl-facebook.svg",
+                                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                              )
                             ),
-                            alignment: Alignment.center,
-                            child: SvgPicture.asset(
-                              "svg/bxl-facebook.svg",
-                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                            )
                           ),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: yellow,
-                              borderRadius: BorderRadius.circular(5),
+                          InkWell(
+                            onTap: loginWithGoogle,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: yellow,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              alignment: Alignment.center,
+                              child: SvgPicture.asset(
+                                "svg/bxl-google.svg",
+                                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                              )
                             ),
-                            alignment: Alignment.center,
-                            child: SvgPicture.asset(
-                              "svg/bxl-google.svg",
-                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                            )
                           ),
                           InkWell(
                             onTap: loginWithGithub,

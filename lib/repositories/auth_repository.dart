@@ -11,8 +11,10 @@ import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
   final FirebaseAuth auth;
@@ -113,10 +115,31 @@ class AuthRepository {
       GithubAuthProvider githubProvider = GithubAuthProvider();
 
       if (kIsWeb) {
-        await auth.signInWithPopup(githubProvider);
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+        googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        googleProvider.setCustomParameters({
+          'login_hint': 'user@example.com'
+        });
+
+        // Once signed in, return the UserCredential
+        await FirebaseAuth.instance.signInWithPopup(googleProvider);
       }
       else {
-        await auth.signInWithProvider(githubProvider);
+        // Trigger the authentication flow
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+        // Obtain the auth details from the request
+        final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+        // Create a new credential
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
+        );
+
+        // Once signed in, return the UserCredential
+        await FirebaseAuth.instance.signInWithCredential(credential);
       }
 
       if (context.mounted) {
@@ -140,13 +163,21 @@ class AuthRepository {
 
   void signInWithFacebook(BuildContext context) async {
     try {
-      GithubAuthProvider githubProvider = GithubAuthProvider();
-
       if (kIsWeb) {
-        await auth.signInWithPopup(githubProvider);
+        FacebookAuthProvider facebookProvider = FacebookAuthProvider();
+        
+        facebookProvider.addScope('email');
+        facebookProvider.setCustomParameters({
+          'display': 'popup',
+        });
+        await auth.signInWithPopup(facebookProvider);
       }
       else {
-        await auth.signInWithProvider(githubProvider);
+        final LoginResult loginResult = await FacebookAuth.instance.login();
+        // Create a credential from the access token
+        final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+
+        await auth.signInWithCredential(facebookAuthCredential);
       }
 
       if (context.mounted) {
