@@ -108,6 +108,66 @@ class AuthRepository {
     }
   }
 
+  void signInWithGoogle(BuildContext context) async {
+    try {
+      GithubAuthProvider githubProvider = GithubAuthProvider();
+
+      if (kIsWeb) {
+        await auth.signInWithPopup(githubProvider);
+      }
+      else {
+        await auth.signInWithProvider(githubProvider);
+      }
+
+      if (context.mounted) {
+        UserModel? user = await getCurrentUserData();
+        if (user != null) {
+          ref.read(authControllerProvider.notifier).state = AuthModel(user: user, authState: AuthState.login);
+          if (context.mounted) {
+            context.go('/');
+          }
+        } 
+        else {
+          if (context.mounted) {
+            context.go('/user-info');
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      showSnackBar(context: context, content: e.message!);
+    }
+  }
+
+  void signInWithFacebook(BuildContext context) async {
+    try {
+      GithubAuthProvider githubProvider = GithubAuthProvider();
+
+      if (kIsWeb) {
+        await auth.signInWithPopup(githubProvider);
+      }
+      else {
+        await auth.signInWithProvider(githubProvider);
+      }
+
+      if (context.mounted) {
+        UserModel? user = await getCurrentUserData();
+        if (user != null) {
+          ref.read(authControllerProvider.notifier).state = AuthModel(user: user, authState: AuthState.login);
+          if (context.mounted) {
+            context.go('/');
+          }
+        } 
+        else {
+          if (context.mounted) {
+            context.go('/user-info');
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      showSnackBar(context: context, content: e.message!);
+    }
+  }
+
   void saveUserDataToFirebase(BuildContext context, File? file, String name) async {
     try {
       String uid = auth.currentUser!.uid;
