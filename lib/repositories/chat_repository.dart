@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,15 +9,18 @@ import 'package:flutter_chatapp_firebase/models/chat_model.dart';
 import 'package:flutter_chatapp_firebase/models/contact_model.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
+import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatRepository {
+  final Ref ref;
   final FirebaseAuth auth;
   final FirebaseFirestore firestore;
 
   ChatRepository({
+    required this.ref,
     required this.auth,
     required this.firestore,
   });
@@ -50,13 +55,76 @@ class ChatRepository {
   Stream<List<MessageModel>> getMessages (String receiverUserId) {
     return firestore.collection('users')
       .doc(auth.currentUser!.uid).collection('chats').doc(receiverUserId)
-      .collection('messages').snapshots().map((event) {
+      .collection('messages').orderBy('timeSent', descending: false).snapshots().map((event) {
         List<MessageModel> messages = [];
         for(var document in event.docs) {
           messages.add(MessageModel.fromMap(document.data()));
         }
         return messages;
       });
+  }
+
+  Stream<List<UserModel>> getUsers () {
+    return firestore.collection('users').snapshots().map((event) {
+      List<UserModel> users = [];
+      for(var document in event.docs) {
+        var userTemp = UserModel.fromMap(document.data());
+        if (userTemp.uid != auth.currentUser!.uid) {
+          users.add(userTemp);
+        }
+      }
+      return users;
+    });
+  }
+
+  void sendFileMessage({
+    required BuildContext context,
+    required File file,
+    required String receiverUserId,
+    required UserModel senderUserData,
+    required MessageEnum messageEnum
+  }) async {
+    try {
+      var timeSent = DateTime.now();
+      var messageId = const Uuid().v1();
+
+      String imageUrl = await ref.read(firebaseStoreRepositoryProvider).storeFileToFIrebase('chat/${messageEnum.type}/${senderUserData.uid}/$receiverUserId/$messageId', file);
+
+      UserModel receiverUserData;
+      var userDataMap = await firestore.collection('users').doc(receiverUserId).get();
+      receiverUserData = UserModel.fromMap(userDataMap.data()!);
+
+      String contactMsg;
+      switch(messageEnum) {
+        case MessageEnum.image:
+          contactMsg = "📷 Photo";
+          break;
+        case MessageEnum.audio:
+          contactMsg = "🔊 Audio";
+          break;
+        case MessageEnum.video:
+          contactMsg = "📹 Video";
+          break;
+        case MessageEnum.gif:
+          contactMsg = "Gif";
+          break;
+        default:
+          contactMsg = "File";
+          break;
+      }
+
+      saveDataToContactsSubCollection(senderUserData, receiverUserData, contactMsg, timeSent);
+
+      saveMessageToMessageSubCollection(
+        receiverUserId: receiverUserId, 
+        text: imageUrl, timeSent: timeSent, 
+        messageId: messageId, username: senderUserData.name, 
+        receiverUserName: receiverUserData.name, 
+        messageType: messageEnum
+      );
+    } on FirebaseAuthException catch (e) {
+      showSnackBar(context: context, content: e.message!);
+    }
   }
 
   void sendTextMessage({required BuildContext context, required String text, required String receiverUserId, required UserModel senderUser}) async {
@@ -135,8 +203,9 @@ class ChatRepository {
     await firestore.collection('users').doc(receiverUserId).collection('chats')
       .doc(auth.currentUser!.uid).collection('messages').doc(messageId).set(message.toMap());
   }
+  
 }
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  return ChatRepository(firestore: FirebaseFirestore.instance, auth: FirebaseAuth.instance);
+  return ChatRepository(firestore: FirebaseFirestore.instance, auth: FirebaseAuth.instance, ref: ref);
 });

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
-import 'package:flutter_chatapp_firebase/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,7 +41,7 @@ class LandingPage extends ConsumerWidget {
                         const Text(
                           "Read your Privacy Policy. Tap \"Agree and continue\" to accept the Terms of Services",
                           style: TextStyle(
-                            color: greyColor
+                            color: Colors.grey
                           ),
                           textAlign: TextAlign.center,
                         ),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/layouts/main_layout.dart';
 import 'package:flutter_chatapp_firebase/models/auth_model.dart';
+import 'package:flutter_chatapp_firebase/pages/call_page.dart';
 import 'package:flutter_chatapp_firebase/pages/home_page.dart';
 import 'package:flutter_chatapp_firebase/pages/landing_page.dart';
 import 'package:flutter_chatapp_firebase/pages/loading_page.dart';
 import 'package:flutter_chatapp_firebase/pages/login_page.dart';
 import 'package:flutter_chatapp_firebase/pages/message_page.dart';
 import 'package:flutter_chatapp_firebase/pages/otp_page.dart';
+import 'package:flutter_chatapp_firebase/pages/people_page.dart';
+import 'package:flutter_chatapp_firebase/pages/setting_page.dart';
 import 'package:flutter_chatapp_firebase/pages/user_info_page.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,18 +47,6 @@ class RouterNotifier extends ChangeNotifier {
       builder: (context, state) => const LoadingPage(),
     ),
     GoRoute(
-      name: 'chat',
-      path: '/',
-      builder: (context, state) => const HomePage(),
-      routes: [
-        GoRoute(
-          name: 'chat-detail',
-          path: 'chats/:id',
-          builder: (context, state) => MessagePage(id: state.params['id']),
-        ),
-      ]
-    ),
-    GoRoute(
       name: 'landing',
       path: '/landing',
       builder: (context, state) => const LandingPage(),
@@ -74,6 +66,40 @@ class RouterNotifier extends ChangeNotifier {
       path: '/user-info',
       builder: (context, state) => const UserInfoPage(),
     ),
+    ShellRoute(
+      builder: (context, state, child) {
+        return MainLayout(child: child);
+      },
+      routes: [
+        GoRoute(
+          name: 'chat',
+          path: '/',
+          builder: (context, state) => const HomePage(),
+          routes: [
+            GoRoute(
+              name: 'chat-detail',
+              path: 'chats/:id',
+              builder: (context, state) => MessagePage(id: state.params['id']),
+            ),
+          ]
+        ),
+        GoRoute(
+          name: 'calls',
+          path: '/calls',
+          builder: (context, state) => const CallPage(),
+        ),
+        GoRoute(
+          name: 'people',
+          path: '/people',
+          builder: (context, state) => const PeoplePage(),
+        ),
+        GoRoute(
+          name: 'settings',
+          path: '/settings',
+          builder: (context, state) => const SettingPage(),
+        ),
+      ]
+    )
   ];
 }
 

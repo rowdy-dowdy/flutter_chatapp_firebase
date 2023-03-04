@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
@@ -6,10 +8,13 @@ import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
+import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_chatapp_firebase/widgets/chat_buble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:file_picker/file_picker.dart';
 
 class MessagePage extends ConsumerWidget {
   final String? id;
@@ -72,7 +77,40 @@ class _MessageAppBarState extends ConsumerState<MessageAppBar> {
         stream: ref.read(authRepositoryProvider).userDataById(widget.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return Shimmer.fromColors(
+              baseColor: primary2,
+              highlightColor: primary3,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: primary2,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10,),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 2,),
+                      Container(width: 100, height: 20, decoration: BoxDecoration(
+                        color: primary2,
+                        borderRadius: BorderRadius.circular(6)
+                      ),),
+                      const SizedBox(height: 5,),
+                      Container(width: 50, height: 10, decoration: BoxDecoration(
+                        color: primary2,
+                        borderRadius: BorderRadius.circular(6)
+                      ),),
+                    ],
+                  ),
+                ],
+              ),
+            );
           }
           if (snapshot.hasError) {
             return const Text('Error');
@@ -139,8 +177,27 @@ class MessageBottomBar extends ConsumerStatefulWidget {
 }
 
 class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
-
   final textMessageController = TextEditingController();
+
+  void selectImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null && result.files.single.path != null) {
+      PlatformFile file = result.files.first;
+
+      print(file.size);
+      print(file.extension);
+    }
+
+    // File? image = await pickImageFromGallery(context);
+    // if (image != null && context.mounted) {
+    //   ref.read(chatControllerProvider).sendFileMessage(
+    //     context: context, 
+    //     file: image, receiverUserId: widget.id, 
+    //     messageEnum: MessageEnum.image
+    //   );
+    // }
+  }
 
   @override
   void dispose() {
@@ -169,14 +226,20 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
           Expanded(
             child: Container(
               height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              // padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               decoration: BoxDecoration(
                 color: primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(3)
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.attachment, color: primary, size: 22,),
+                  InkWell(
+                    onTap: selectImage,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.attachment, size: 22,),
+                    )
+                  ),
                   const SizedBox(width: 10,),
                   Expanded(
                     child: TextField(
@@ -190,7 +253,13 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
                     ),
                   ),
                   const SizedBox(width: 10,),
-                  const Icon(Icons.mic, color: primary, size: 22,),
+                  InkWell(
+                    onTap: selectImage,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.mic, size: 22,),
+                    )
+                  ),
                 ],
               ),
             ),
@@ -243,7 +312,6 @@ class _MessageBodyChatState extends ConsumerState<MessageBodyChat> {
             padding: EdgeInsets.symmetric(vertical: 50),
             child: Center(child: CircularProgressIndicator())
           );
-
         }
 
         SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -280,6 +348,7 @@ class _MessageBodyChatState extends ConsumerState<MessageBodyChat> {
               isMe: isMe,
               isLast: isLast,
               isFirst: isFirst,
+              messageEnum: message.type,
             );
           },
         );

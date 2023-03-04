@@ -64,7 +64,7 @@ class _OTPPageState extends ConsumerState<OTPPage> {
                       const Text(
                         "We have sent an SMS with a code",
                         style: TextStyle(
-                          color: greyColor
+                          color: Colors.grey
                         ),
                         textAlign: TextAlign.center,
                       ),

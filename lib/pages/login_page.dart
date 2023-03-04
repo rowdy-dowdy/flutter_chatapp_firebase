@@ -3,7 +3,6 @@ import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
-import 'package:flutter_chatapp_firebase/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:country_picker/country_picker.dart';
@@ -90,7 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const Text(
                         "WhatsApp will need to verify your phone number",
                         style: TextStyle(
-                          color: greyColor
+                          color: Colors.grey
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -127,7 +126,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const Text(
                         "Or login with Social Network",
                         style: TextStyle(
-                          color: greyColor
+                          color: Colors.grey
                         ),
                         textAlign: TextAlign.center,
                       ),

@@ -199,7 +199,7 @@ class BodyListContact extends ConsumerWidget {
                             height: 50,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: primary,
+                              border: Border.all(color: primary.withOpacity(0.7)),
                               image: DecorationImage(
                                 image: NetworkImage(contact.profilePic),
                                 fit: BoxFit.cover,
@@ -230,7 +230,7 @@ class BodyListContact extends ConsumerWidget {
                                       ),)
                                     ],
                                   ),
-                                  const SizedBox(height: 3,),
+                                  const SizedBox(height: 5,),
                                   Row(
                                     children: [
                                       Expanded(
@@ -242,12 +242,13 @@ class BodyListContact extends ConsumerWidget {
                                         ),
                                       ),
                                       const SizedBox(width: 5,),
-                                      badges.Badge(
-                                        badgeContent: Text(1.toString(), style: const TextStyle(color: Colors.grey),),
-                                        badgeStyle: const badges.BadgeStyle(
-                                          badgeColor: primary
-                                        ),
-                                      )
+                                      const Icon(Icons.done_all, size: 16,)
+                                      // badges.Badge(
+                                      //   badgeContent: Text(1.toString(), style: const TextStyle(color: Colors.grey),),
+                                      //   badgeStyle: const badges.BadgeStyle(
+                                      //     badgeColor: primary
+                                      //   ),
+                                      // )
                                     ],
                                   )
                                 ],

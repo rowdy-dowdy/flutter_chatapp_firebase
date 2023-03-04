@@ -72,7 +72,7 @@ class MyApp extends ConsumerWidget {
           labelColor: primary,
         ),
         progressIndicatorTheme: const ProgressIndicatorThemeData(
-          color: primary
+          color: primary2
         )
       ),
       // darkTheme: ThemeData.dark(),

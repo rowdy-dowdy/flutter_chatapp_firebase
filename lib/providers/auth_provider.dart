@@ -71,6 +71,10 @@ class AuthNotifier extends StateNotifier<AuthModel> {
     ref.read(authRepositoryProvider).verifyOTP(context, verificationId, smsCode);
   }
 
+  void setUserState(bool isOnline) async {
+    ref.read(authRepositoryProvider).setUserState(isOnline);
+  }
+
   // void saveUserDataToFirebase(BuildContext context, File? file, String name) async {
   //   ref.read(authRepositoryProvider).saveUserDataToFirebase(context, file, name);
   // }
