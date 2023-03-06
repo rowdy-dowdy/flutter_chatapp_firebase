@@ -4,31 +4,41 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 class FirebaseStoreRepository {
   final FirebaseStorage firebaseStore;
 
   FirebaseStoreRepository({
     required this.firebaseStore,
-  });
+  }) {
+    // init();
+  }
 
-  Future<String> storeFileToFIrebase(String ref, File file) async {
+  void init() async {
+    final emulatorHost =
+    (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+      ? '10.0.2.2'
+      : 'localhost';
+    await firebaseStore.useStorageEmulator(emulatorHost, 9199);
+  }
+
+  Future<String> storeFileToFIrebase(String ref, Uint8List file) async {
+    final mime = lookupMimeType('', headerBytes: file);
     final metadata = SettableMetadata(
-      contentType: 'image/jpeg',
-      customMetadata: {'picked-file-path': file.path},
+      contentType: mime,
     );
-
     UploadTask uploadTask;
 
     if (kIsWeb) {
-      XFile fileUpload = XFile(file.path); 
-      uploadTask = firebaseStore.ref().child(ref).putData(await fileUpload.readAsBytes(), metadata);
+      uploadTask = firebaseStore.ref().child(ref).putData(file, metadata);
     } else {
-      uploadTask = firebaseStore.ref().child(ref).putFile(file, metadata);
+      uploadTask = firebaseStore.ref().child(ref).putData(file, metadata);
     }
 
     TaskSnapshot snap = await uploadTask;
     String downloadUrl = await snap.ref.getDownloadURL();
+
     return downloadUrl;
   }
 }

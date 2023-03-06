@@ -1,8 +1,10 @@
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:video_player/video_player.dart';
 
 class CustomBubbleChat extends ConsumerWidget {
   final String message;
@@ -42,7 +44,22 @@ class CustomBubbleChat extends ConsumerWidget {
                 isLast: isLast, isMe: isMe,
                 message: message, textColor: textColor, time: time
               )
-              : Container()
+              : messageEnum == MessageEnum.video ? VideoMessage(
+                bgColor: bgColor, isFirst: isFirst, 
+                isLast: isLast, isMe: isMe,
+                message: message, textColor: textColor, time: time
+              )
+              : messageEnum == MessageEnum.audio ? AudioMessage(
+                bgColor: bgColor, isFirst: isFirst, 
+                isLast: isLast, isMe: isMe,
+                message: message, textColor: textColor, time: time
+              )
+              : messageEnum == MessageEnum.gif ? GifMessage(
+                bgColor: bgColor, isFirst: isFirst, 
+                isLast: isLast, isMe: isMe,
+                message: message, textColor: textColor, time: time
+              )
+              : const NotSupportExtensions()
           ),
         ),
       ]
@@ -198,6 +215,320 @@ class ImageMessage extends ConsumerWidget {
           ),
         ) : const SizedBox(),
       ],
+    );
+  }
+}
+
+class VideoMessage extends ConsumerStatefulWidget {
+  final String message;
+  final bool isMe;
+  final Color textColor;
+  final Color bgColor;
+  final bool isFirst;
+  final bool isLast;
+  final String time;
+
+  const VideoMessage({
+    required this.isMe, 
+    required this.message, 
+    required this.textColor,
+    required this.bgColor,
+    required this.isFirst,
+    required this.isLast,
+    required this.time,
+    super.key
+  });
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _VideoMessageState();
+}
+
+class _VideoMessageState extends ConsumerState<VideoMessage> {
+  late VideoPlayerController _controller;
+  // late ChewieController chewieController;
+  late bool videoPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    initVideoController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    // chewieController.dispose();
+    super.dispose();
+  }
+
+  void initVideoController() async {
+    _controller = VideoPlayerController.network(widget.message)
+      ..addListener(() {
+        if (!_controller.value.isPlaying &&
+          _controller.value.position > Duration.zero &&
+          _controller.value.position.inSeconds >= _controller.value.duration.inSeconds &&
+          videoPlaying) {
+          // completion
+          videoPlaying = false;
+          _controller.seekTo(Duration.zero);
+          setState(() {});
+        }
+      })
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
+
+    // _controller.addListener(() {
+    //   if(_controller.value.position == _controller.value.duration) {
+    //     setState(() {
+    //       videoPlaying = false;
+    //     });
+    //   }
+    // });
+
+    // chewieController = ChewieController(
+    //   videoPlayerController: _controller,
+    //   autoPlay: true,
+    //   looping: true,
+    // );
+  }
+
+  void playVideo () {
+    if (!videoPlaying) {
+      videoPlaying = true;
+      _controller.play();
+    }
+    else {
+      videoPlaying = false;
+      _controller.pause();
+    }
+    setState(() {});
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    BorderRadius borderRadius = BorderRadius.only(
+      topLeft: widget.isMe ? const Radius.circular(18) : widget.isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      topRight: !widget.isMe ? const Radius.circular(18) : widget.isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      bottomRight: !widget.isMe ? const Radius.circular(18) : widget.isLast ? const Radius.circular(18) : const Radius.circular(6),
+      bottomLeft: widget.isMe ? const Radius.circular(18) : widget.isLast ? const Radius.circular(18) : const Radius.circular(6)
+    );
+
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(1),
+          // width: 300,
+          // height: 200,
+          decoration: BoxDecoration(
+            color: widget.bgColor.withOpacity(0.7),
+            borderRadius: borderRadius,
+          ),
+          constraints: const BoxConstraints(
+            maxWidth: 300,
+            maxHeight: 200
+          ),
+          child: ClipRRect(
+            borderRadius: borderRadius,
+            child: Stack(
+              children: [
+                if (_controller.value.isInitialized) ...[
+                  AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller),
+                  ),
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: InkWell(
+                        onTap: playVideo,
+                        child: !videoPlaying ? Container(
+                          width: 50,
+                          height: 50,
+                          decoration: const BoxDecoration(
+                            color: primary3,
+                            shape: BoxShape.circle
+                          ),
+                          child: const Icon(Icons.play_arrow_rounded),
+                        ) : Container(),
+                      ),
+                    ),
+                  )
+                ]
+                else ...[
+                  const Center(child: CircularProgressIndicator()),
+                ]
+              ],
+            ),
+          )
+        ),
+        widget.isMe ? Positioned(
+          bottom: 4,
+          right: 6,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.time,style: TextStyle(
+                fontSize: 10, 
+                color: Colors.white.withOpacity(0.6))
+              ),
+              const SizedBox(width: 5,),
+              Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.6),)
+            ],
+          ),
+        ) : const SizedBox(),
+      ],
+
+
+
+
+    );
+  }
+}
+
+class AudioMessage extends ConsumerWidget {
+  final String message;
+  final bool isMe;
+  final Color textColor;
+  final Color bgColor;
+  final bool isFirst;
+  final bool isLast;
+  final String time;
+
+  const AudioMessage({
+    required this.isMe, 
+    required this.message, 
+    required this.textColor,
+    required this.bgColor,
+    required this.isFirst,
+    required this.isLast,
+    required this.time,
+    super.key
+  });
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    BorderRadius borderRadius = BorderRadius.only(
+      topLeft: isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      topRight: !isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      bottomRight: !isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6),
+      bottomLeft: isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6)
+    );
+
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(1),
+          decoration: BoxDecoration(
+            color: bgColor.withOpacity(0.7),
+            borderRadius: borderRadius,
+          ),
+          constraints: const BoxConstraints(
+            maxWidth: 300,
+            maxHeight: 200
+          ),
+          child: Container()
+        ),
+        isMe ? Positioned(
+          bottom: 4,
+          right: 6,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(time,style: TextStyle(
+                fontSize: 10, 
+                color: Colors.white.withOpacity(0.6))
+              ),
+              const SizedBox(width: 5,),
+              Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.6),)
+            ],
+          ),
+        ) : const SizedBox(),
+      ],
+    );
+  }
+}
+
+class GifMessage extends ConsumerWidget {
+  final String message;
+  final bool isMe;
+  final Color textColor;
+  final Color bgColor;
+  final bool isFirst;
+  final bool isLast;
+  final String time;
+
+  const GifMessage({
+    required this.isMe, 
+    required this.message, 
+    required this.textColor,
+    required this.bgColor,
+    required this.isFirst,
+    required this.isLast,
+    required this.time,
+    super.key
+  });
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    BorderRadius borderRadius = BorderRadius.only(
+      topLeft: isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      topRight: !isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      bottomRight: !isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6),
+      bottomLeft: isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6)
+    );
+
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(1),
+          decoration: BoxDecoration(
+            color: bgColor.withOpacity(0.7),
+            borderRadius: borderRadius,
+          ),
+          constraints: const BoxConstraints(
+            maxWidth: 300,
+            maxHeight: 200
+          ),
+          child: Container()
+        ),
+        isMe ? Positioned(
+          bottom: 4,
+          right: 6,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(time,style: TextStyle(
+                fontSize: 10, 
+                color: Colors.white.withOpacity(0.6))
+              ),
+              const SizedBox(width: 5,),
+              Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.6),)
+            ],
+          ),
+        ) : const SizedBox(),
+      ],
+    );
+  }
+}
+
+class NotSupportExtensions extends ConsumerWidget {
+  const NotSupportExtensions({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      width: 110,
+      height: 40,
+      margin: const EdgeInsets.only(right: 45),
+      alignment: Alignment.center,
+      child: Row(
+        children: const [
+          SizedBox(width: 10,),
+          Icon(Icons.error, color: Colors.white,),
+          SizedBox(width: 5,),
+          Text("Not support extensions", style: TextStyle(fontSize: 11, color: Colors.white),)
+        ],
+      )
     );
   }
 }

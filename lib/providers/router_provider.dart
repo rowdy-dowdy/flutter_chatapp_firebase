@@ -107,10 +107,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/loading',
     debugLogDiagnostics: true,
     refreshListenable: router,
-    // redirect: router._redirectLogin,
+    redirect: router._redirectLogin,
     routes: router._routers
   );
 });

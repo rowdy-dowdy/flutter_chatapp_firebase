@@ -200,7 +200,7 @@ class AuthRepository {
     }
   }
 
-  void saveUserDataToFirebase(BuildContext context, File? file, String name) async {
+  void saveUserDataToFirebase(BuildContext context, Uint8List? file, String name) async {
     try {
       String uid = auth.currentUser!.uid;
       String imageUrl = '';

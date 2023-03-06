@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:html' as html;
 
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
@@ -7,12 +10,15 @@ import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
+import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_chatapp_firebase/widgets/chat_buble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -178,33 +184,47 @@ class MessageBottomBar extends ConsumerStatefulWidget {
 
 class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
   final textMessageController = TextEditingController();
+  late FlutterSoundRecorder? recorder;
+
+  final List<String> allowedExtensions = ['jpg', 'mp4', 'gif', 'mp3', 'png'];
 
   void selectImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,   
+      allowedExtensions: allowedExtensions,
+    );
 
-    if (result != null && result.files.single.path != null) {
+    if (result != null) {
       PlatformFile file = result.files.first;
 
-      print(file.size);
-      print(file.extension);
+      if (allowedExtensions.indexWhere((v) => v == file.extension) < 0) {
+        if (context.mounted) {
+          showSnackBar(context: context, content: "File extensions is not support");
+        }
+        return;
+      }
+
+      if (file.size > 2097152) {
+        if (context.mounted) {
+          showSnackBar(context: context, content: "File size larger than 2 mb");
+        }
+        return;
+      }
+
+      Uint8List? uploadFile = result.files.single.bytes;
+      
+      if (uploadFile != null && context.mounted) {
+        ref.read(chatControllerProvider).sendFileMessage(
+          context: context, 
+          file: uploadFile, receiverUserId: widget.id, 
+          messageEnum: file.extension == "jpg" || file.extension == "png"
+            ? MessageEnum.image
+            : file.extension == "mp4" ? MessageEnum.video
+            : file.extension == "mp3" ? MessageEnum.audio
+            : MessageEnum.gif
+        );
+      }
     }
-
-    // File? image = await pickImageFromGallery(context);
-    // if (image != null && context.mounted) {
-    //   ref.read(chatControllerProvider).sendFileMessage(
-    //     context: context, 
-    //     file: image, receiverUserId: widget.id, 
-    //     messageEnum: MessageEnum.image
-    //   );
-    // }
-  }
-
-  @override
-  void dispose() {
-    // Clean up the controller when the widget is removed from the
-    // widget tree.
-    textMessageController.dispose();
-    super.dispose();
   }
 
   void sendTextMessage() {
@@ -214,6 +234,52 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
     setState(() {  
       textMessageController.text = "";
     });
+  }
+
+  void record() async {
+    await recorder!.startRecorder(toFile: 'audio');
+  }
+
+  void stopRecord() async {
+    final path = await recorder!.stopRecorder();
+    final audioFile = File(path!);
+
+    print('audio $audioFile');
+  }
+
+  void initRecorder() async {
+    recorder = FlutterSoundRecorder();
+
+    if(kIsWeb) {
+      final perm = await html.window.navigator.permissions!.query({"name": "microphone"});
+      if (perm.state != "granted") {
+        throw 'Microphone permission is not granted';
+      }
+    }
+    else {
+      final status = await Permission.microphone.request();
+
+      if (status != PermissionStatus.granted) {
+        throw 'Microphone permission is not granted';
+      }
+    }
+
+    await recorder!.openRecorder();
+    recorder!.setSubscriptionDuration(const Duration(milliseconds: 500));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initRecorder();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    textMessageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -253,11 +319,18 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
                     ),
                   ),
                   const SizedBox(width: 10,),
-                  InkWell(
-                    onTap: selectImage,
+                  !recorder!.isRecording ? InkWell(
+                    onTap: record,
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Icon(Icons.mic, size: 22,),
+                    )
+                  )
+                  : InkWell(
+                    onTap: stopRecord,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.stop, size: 22, color: Colors.red,),
                     )
                   ),
                 ],

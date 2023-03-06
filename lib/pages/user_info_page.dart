@@ -1,12 +1,15 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/utils/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 class UserInfoPage extends ConsumerStatefulWidget {
   const UserInfoPage({super.key});
@@ -17,7 +20,22 @@ class UserInfoPage extends ConsumerStatefulWidget {
 
 class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   final TextEditingController nameController = TextEditingController();
-  File? image;
+  Uint8List? uploadFile;
+  String userPhoto = "";
+
+  @override
+  void initState () {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      UserModel? user = await ref.read(authRepositoryProvider).getCurrentUserData();
+
+      if (user != null) {
+        userPhoto = user.profilePic;
+        nameController.text = user.name;
+        setState(() {});
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -26,14 +44,21 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   }
 
   void selectImage() async {
-    image = await pickImageFromGallery(context);
-    setState(() {});
+    // image = await pickImageFromGallery(context);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+
+    if (result != null) {
+      uploadFile = result.files.single.bytes;
+      setState(() {});
+    }
   }
 
   void saveUserInfo() async {
     String name = nameController.text.trim();
     if (name.isNotEmpty) {
-      ref.read(authRepositoryProvider).saveUserDataToFirebase(context, image, name);
+      ref.read(authRepositoryProvider).saveUserDataToFirebase(context, uploadFile, name);
     }
   }
 
@@ -59,21 +84,29 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                   children: [
                     Stack(
                       children: [
-                        image == null ?  const CircleAvatar(
-                          backgroundImage: AssetImage(
-                            'img/user.png'
-                          ),
-                          backgroundColor: primary2,
-                          radius: 64,
-                        )
-                        : kIsWeb ? CircleAvatar(
-                          backgroundImage: NetworkImage(image!.path),
-                          radius: 64,
-                        )
-                        : CircleAvatar(
-                          backgroundImage: FileImage(image!),
-                          radius: 64,
-                        ),
+                        if (uploadFile == null) ...[
+                          if (userPhoto != "") ...[
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(userPhoto),
+                              radius: 64,
+                            )
+                          ]
+                          else ...[
+                            const CircleAvatar(
+                              backgroundImage: AssetImage(
+                                'img/user.png'
+                              ),
+                              backgroundColor: primary2,
+                              radius: 64,
+                            )
+                          ]
+                        ]
+                        else ...[
+                          CircleAvatar(
+                            backgroundImage: MemoryImage(uploadFile!),
+                            radius: 64,
+                          )
+                        ],
                         Positioned(
                           bottom: -10,
                           left: 80,

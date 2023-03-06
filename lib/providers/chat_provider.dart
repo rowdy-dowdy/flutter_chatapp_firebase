@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/models/chat_model.dart';
@@ -24,7 +25,7 @@ class ChatController {
     chatRepository.sendTextMessage(context: context, text: text, receiverUserId: receiverUserId, senderUser: userData!);
   }
 
-  void sendFileMessage({ required BuildContext context, required File file, required String receiverUserId, required MessageEnum messageEnum }) async {
+  void sendFileMessage({ required BuildContext context, required Uint8List file, required String receiverUserId, required MessageEnum messageEnum }) async {
     final userData = ref.watch(authControllerProvider).user;
     chatRepository.sendFileMessage(
       context: context, file: file, receiverUserId: receiverUserId, 

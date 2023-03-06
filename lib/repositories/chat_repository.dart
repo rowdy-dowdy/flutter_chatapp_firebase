@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -79,7 +80,7 @@ class ChatRepository {
 
   void sendFileMessage({
     required BuildContext context,
-    required File file,
+    required Uint8List file,
     required String receiverUserId,
     required UserModel senderUserData,
     required MessageEnum messageEnum
@@ -89,6 +90,8 @@ class ChatRepository {
       var messageId = const Uuid().v1();
 
       String imageUrl = await ref.read(firebaseStoreRepositoryProvider).storeFileToFIrebase('chat/${messageEnum.type}/${senderUserData.uid}/$receiverUserId/$messageId', file);
+
+      print(imageUrl);
 
       UserModel receiverUserData;
       var userDataMap = await firestore.collection('users').doc(receiverUserId).get();
