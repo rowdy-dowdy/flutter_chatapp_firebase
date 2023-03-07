@@ -71,7 +71,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                     Expanded(
                       child: TextField(
                         controller: searchController,
-                        keyboardType: TextInputType.number,
+                        // keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,

@@ -11,7 +11,7 @@
       "args": [
         "run",
         "-d",
-        "android"
+        "emulator-5554"
       ]
     },
     {

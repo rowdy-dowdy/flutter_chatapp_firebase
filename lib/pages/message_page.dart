@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:html' as html;
+// import 'dart:html' as html;
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -185,6 +185,7 @@ class MessageBottomBar extends ConsumerStatefulWidget {
 class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
   final textMessageController = TextEditingController();
   late FlutterSoundRecorder? recorder;
+  bool isRecording = false;
 
   final List<String> allowedExtensions = ['jpg', 'mp4', 'gif', 'mp3', 'png'];
 
@@ -238,23 +239,33 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
 
   void record() async {
     await recorder!.startRecorder(toFile: 'audio');
+    isRecording = true;
+    setState(() {});
   }
 
   void stopRecord() async {
     final path = await recorder!.stopRecorder();
     final audioFile = File(path!);
 
-    print('audio $audioFile');
+    isRecording = false;
+    if (audioFile != null && context.mounted) {
+      ref.read(chatControllerProvider).sendFileMessage(
+        context: context, 
+        file: audioFile.readAsBytesSync(), receiverUserId: widget.id, 
+        messageEnum: MessageEnum.audio
+      );
+    }
+    setState(() {});
   }
 
   void initRecorder() async {
     recorder = FlutterSoundRecorder();
 
     if(kIsWeb) {
-      final perm = await html.window.navigator.permissions!.query({"name": "microphone"});
-      if (perm.state != "granted") {
-        throw 'Microphone permission is not granted';
-      }
+      // final perm = await html.window.navigator.permissions!.query({"name": "microphone"});
+      // if (perm.state != "granted") {
+      //   throw 'Microphone permission is not granted';
+      // }
     }
     else {
       final status = await Permission.microphone.request();
@@ -286,7 +297,7 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
   Widget build(BuildContext context) {
     return Container(
       // width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
       child: Row(
         children: [
           Expanded(
@@ -319,7 +330,7 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
                     ),
                   ),
                   const SizedBox(width: 10,),
-                  !recorder!.isRecording ? InkWell(
+                  !isRecording ? InkWell(
                     onTap: record,
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -328,9 +339,10 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
                   )
                   : InkWell(
                     onTap: stopRecord,
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(Icons.stop, size: 22, color: Colors.red,),
+                    child: Container(
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Icon(Icons.stop, size: 22, color: Colors.red,),
                     )
                   ),
                 ],
@@ -414,6 +426,8 @@ class _MessageBodyChatState extends ConsumerState<MessageBodyChat> {
               || index == snapshot.data!.length - 1) {
               isLast = true;
             }
+
+            if (message.type != MessageEnum.audio) return Container();
 
             return CustomBubbleChat(
               message: message.text,

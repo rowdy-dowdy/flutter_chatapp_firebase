@@ -43,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
             Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: TabBar(
                     controller: tabController,
                     tabs: const [
@@ -71,9 +71,9 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
                 ],
             ),
             const Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
+              bottom: 15,
+              left: 15,
+              right: 15,
               child: MainBottomNavBar(),
             )
           ],
@@ -102,8 +102,9 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      flexibleSpace: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      titleSpacing: 0,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         child: Row(
           children: [
             Expanded(
@@ -122,7 +123,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                     Expanded(
                       child: TextField(
                         controller: searchController,
-                        keyboardType: TextInputType.number,
+                        // keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -163,7 +164,7 @@ class BodyListContact extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
         child: StreamBuilder<List<ChatModel>>(
           stream: ref.watch(chatControllerProvider).getContacts(),
           builder: (context, snapshot) {

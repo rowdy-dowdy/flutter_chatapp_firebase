@@ -37,7 +37,7 @@ class _OTPPageState extends ConsumerState<OTPPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Center(child: Image.asset("img/cat3.png", width: 300)),
+                      Center(child: Image.asset("assets/img/cat3.png", width: 300)),
                       // const SizedBox(height: 10),
                       const Text(
                         "Verification",

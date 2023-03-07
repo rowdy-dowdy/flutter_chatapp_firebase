@@ -1,4 +1,4 @@
-import 'dart:html';
+// import 'dart:html';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
@@ -18,7 +18,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>  with WidgetsBindingObs
   void initState() {
     super.initState();
     if (kIsWeb) {
-      window.addEventListener('visibilitychange', onVisibilityChange);
+      // window.addEventListener('visibilitychange', onVisibilityChange);
     } else {
       WidgetsBinding.instance.addObserver(this);
     }
@@ -27,22 +27,21 @@ class _MainLayoutState extends ConsumerState<MainLayout>  with WidgetsBindingObs
   @override
   void dispose() {
     if (kIsWeb) {
-      window.addEventListener('visibilitychange', onVisibilityChange);
+      // window.addEventListener('visibilitychange', onVisibilityChange);
     } else {
       WidgetsBinding.instance.removeObserver(this);
     }
     super.dispose();
   }
 
-  void onVisibilityChange(Event e) {
-    if (document.visibilityState == "visible") {
-      didChangeAppLifecycleState(AppLifecycleState.resumed);
-    }
-    else {
-      didChangeAppLifecycleState(AppLifecycleState.paused);
-    }
-    // didChangeAppLifecycleState(AppLifecycleState.resumed);
-  }
+  // void onVisibilityChange(Event e) {
+  //   if (document.visibilityState == "visible") {
+  //     didChangeAppLifecycleState(AppLifecycleState.resumed);
+  //   }
+  //   else {
+  //     didChangeAppLifecycleState(AppLifecycleState.paused);
+  //   }
+  // }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

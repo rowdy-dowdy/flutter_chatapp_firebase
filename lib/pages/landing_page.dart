@@ -27,7 +27,7 @@ class LandingPage extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset("img/cat1.png"),
+                        Image.asset("assets/img/cat1.png"),
                         // const SizedBox(height: 10),
                         const Text(
                           "Wellcome to WhatsApp",

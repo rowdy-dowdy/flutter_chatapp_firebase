@@ -13,7 +13,7 @@ class LoadingPage extends ConsumerWidget {
           child: SizedBox(
             width: 300,
             child: Lottie.asset(
-              'lotties/19141-drive-the-car.json',
+              'assets/lotties/19141-drive-the-car.json',
             ),
           ),
         ),

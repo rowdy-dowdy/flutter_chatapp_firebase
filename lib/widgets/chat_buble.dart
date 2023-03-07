@@ -1,10 +1,12 @@
-import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:video_player/video_player.dart';
+import 'package:audio_waveforms/audio_waveforms.dart';
 
 class CustomBubbleChat extends ConsumerWidget {
   final String message;
@@ -29,7 +31,7 @@ class CustomBubbleChat extends ConsumerWidget {
             constraints: BoxConstraints(
               maxWidth: size.width * 0.7
             ),
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
             decoration: const BoxDecoration(),
             clipBehavior: Clip.hardEdge,
 
@@ -379,15 +381,10 @@ class _VideoMessageState extends ConsumerState<VideoMessage> {
           ),
         ) : const SizedBox(),
       ],
-
-
-
-
     );
   }
 }
-
-class AudioMessage extends ConsumerWidget {
+class AudioMessage extends ConsumerStatefulWidget {
   final String message;
   final bool isMe;
   final Color textColor;
@@ -406,36 +403,93 @@ class AudioMessage extends ConsumerWidget {
     required this.time,
     super.key
   });
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() => _AudioMessageState();
+}
+
+class _AudioMessageState extends ConsumerState<AudioMessage> {
+  late PlayerController controller;
+  final player = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    controller = PlayerController();
+    initPlayerController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void initPlayerController() async {
+    final duration = await player.setUrl(widget.message);
+    await player.play();
+  }
+
+  void startAndStopAudio() async {
+    await player.play();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     BorderRadius borderRadius = BorderRadius.only(
-      topLeft: isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
-      topRight: !isMe ? const Radius.circular(18) : isFirst ? const Radius.circular(18) : const Radius.circular(6),
-      bottomRight: !isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6),
-      bottomLeft: isMe ? const Radius.circular(18) : isLast ? const Radius.circular(18) : const Radius.circular(6)
+      topLeft: widget.isMe ? const Radius.circular(18) : widget.isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      topRight: !widget.isMe ? const Radius.circular(18) : widget.isFirst ? const Radius.circular(18) : const Radius.circular(6),
+      bottomRight: !widget.isMe ? const Radius.circular(18) : widget.isLast ? const Radius.circular(18) : const Radius.circular(6),
+      bottomLeft: widget.isMe ? const Radius.circular(18) : widget.isLast ? const Radius.circular(18) : const Radius.circular(6)
+    );
+
+    return Container(
+      color: Colors.red,
+      // child: AudioFileWaveforms(
+      //   size: Size(240, 30),
+      //   playerController: controller,
+      //   playerWaveStyle: const PlayerWaveStyle(
+      //     scaleFactor: 0.8,
+      //     fixedWaveColor: Colors.white30,
+      //     liveWaveColor: Colors.white,
+      //     waveCap: StrokeCap.butt,
+      //   ),
+      // ),
     );
 
     return Stack(
       children: [
         Container(
+          height: 60,
           padding: const EdgeInsets.all(1),
           decoration: BoxDecoration(
-            color: bgColor.withOpacity(0.7),
+            color: widget.bgColor.withOpacity(0.7),
             borderRadius: borderRadius,
           ),
           constraints: const BoxConstraints(
             maxWidth: 300,
-            maxHeight: 200
           ),
-          child: Container()
+          child: InkWell(
+            onTap: startAndStopAudio,
+            child: AudioFileWaveforms(
+              size: Size(240, 30),
+              playerController: controller,
+              playerWaveStyle: const PlayerWaveStyle(
+                scaleFactor: 0.8,
+                fixedWaveColor: Colors.white30,
+                liveWaveColor: Colors.white,
+                waveCap: StrokeCap.butt,
+              ),
+            )
+          )
         ),
-        isMe ? Positioned(
+        widget.isMe ? Positioned(
           bottom: 4,
           right: 6,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(time,style: TextStyle(
+              Text(widget.time,style: TextStyle(
                 fontSize: 10, 
                 color: Colors.white.withOpacity(0.6))
               ),

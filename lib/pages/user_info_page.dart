@@ -94,7 +94,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                           else ...[
                             const CircleAvatar(
                               backgroundImage: AssetImage(
-                                'img/user.png'
+                                'assets/img/user.png'
                               ),
                               backgroundColor: primary2,
                               radius: 64,

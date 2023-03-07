@@ -76,7 +76,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(child: Image.asset("img/cat2.png", width: 300)),
+                      Center(child: Image.asset("assets/img/cat2.png", width: 300)),
                       // const SizedBox(height: 10),
                       const Text(
                         "Enter your phone number",
@@ -145,7 +145,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               alignment: Alignment.center,
                               child: SvgPicture.asset(
-                                "svg/bxl-facebook.svg",
+                                "assets/svg/bxl-facebook.svg",
                                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                               )
                             ),
@@ -161,7 +161,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               alignment: Alignment.center,
                               child: SvgPicture.asset(
-                                "svg/bxl-google.svg",
+                                "assets/svg/bxl-google.svg",
                                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                               )
                             ),
@@ -177,7 +177,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               alignment: Alignment.center,
                               child: SvgPicture.asset(
-                                "svg/bxl-github.svg",
+                                "assets/svg/bxl-github.svg",
                                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                               )
                             ),
