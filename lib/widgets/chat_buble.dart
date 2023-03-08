@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
+import 'package:flutter_chatapp_firebase/widgets/audio_waveform.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_waveform/just_waveform.dart';
+import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
-import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
 class CustomBubbleChat extends ConsumerWidget {
   final String message;
@@ -408,30 +416,70 @@ class AudioMessage extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _AudioMessageState();
 }
 
+class PositionData {
+  final Duration position;
+  final Duration duration;
+  final Duration bufferedPosition;
+
+  const PositionData(this.position, this.bufferedPosition, this.duration);
+}
 class _AudioMessageState extends ConsumerState<AudioMessage> {
-  late PlayerController controller;
-  final player = AudioPlayer();
+
+  final audioPlayer = AudioPlayer();
+  bool isPlaying = false;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+
+  final progressStream = BehaviorSubject<WaveformProgress>();
+
+  Stream<PositionData> get _positionDataStream =>
+    Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+      audioPlayer.positionStream,
+      audioPlayer.bufferedPositionStream,
+      audioPlayer.durationStream,
+      (position, bufferedPosition, duration) => PositionData(
+        position, bufferedPosition, duration ?? Duration.zero));
 
   @override
   void initState() {
     super.initState();
-    controller = PlayerController();
-    initPlayerController();
+
+    _init();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      audioPlayer.stop();
+    }
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    audioPlayer.dispose();
     super.dispose();
   }
 
-  void initPlayerController() async {
-    final duration = await player.setUrl(widget.message);
-    await player.play();
-  }
+  Future<void> _init() async {
+    // audio
+    audioPlayer.setUrl(widget.message);
 
-  void startAndStopAudio() async {
-    await player.play();
+    // waveform
+    final nameFile = widget.message;
+    var file = await DefaultCacheManager().getSingleFile(nameFile);
+
+    // File test = File("${(await getTemporaryDirectory()).path}/$nameFile");
+    try {
+      final uid = const Uuid().v1();
+      final waveFile = File(p.join((await getTemporaryDirectory()).path, '$uid.wave'));
+      
+      JustWaveform.extract(audioInFile: file, waveOutFile: waveFile)
+        .listen(progressStream.add, onError: progressStream.addError);
+    } catch (e) {
+      print("-----------------------------------------------------------------");
+      progressStream.addError(e);
+      print("-----------------------------------------------------------------");
+    }
   }
 
   @override
@@ -443,45 +491,135 @@ class _AudioMessageState extends ConsumerState<AudioMessage> {
       bottomLeft: widget.isMe ? const Radius.circular(18) : widget.isLast ? const Radius.circular(18) : const Radius.circular(6)
     );
 
-    return Container(
-      color: Colors.red,
-      // child: AudioFileWaveforms(
-      //   size: Size(240, 30),
-      //   playerController: controller,
-      //   playerWaveStyle: const PlayerWaveStyle(
-      //     scaleFactor: 0.8,
-      //     fixedWaveColor: Colors.white30,
-      //     liveWaveColor: Colors.white,
-      //     waveCap: StrokeCap.butt,
-      //   ),
-      // ),
-    );
-
     return Stack(
       children: [
         Container(
-          height: 60,
+          // height: 60,
           padding: const EdgeInsets.all(1),
           decoration: BoxDecoration(
-            color: widget.bgColor.withOpacity(0.7),
+            color: widget.bgColor,
             borderRadius: borderRadius,
           ),
           constraints: const BoxConstraints(
             maxWidth: 300,
           ),
-          child: InkWell(
-            onTap: startAndStopAudio,
-            child: AudioFileWaveforms(
-              size: Size(240, 30),
-              playerController: controller,
-              playerWaveStyle: const PlayerWaveStyle(
-                scaleFactor: 0.8,
-                fixedWaveColor: Colors.white30,
-                liveWaveColor: Colors.white,
-                waveCap: StrokeCap.butt,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(width: 5,),
+              StreamBuilder(
+                stream: audioPlayer.playerStateStream,
+                builder: (context, snapshot) {
+                  final playerState = snapshot.data;
+                  final processingState = playerState?.processingState;
+                  final playing = playerState?.playing;
+
+                  if (processingState == ProcessingState.loading ||
+                      processingState == ProcessingState.buffering) {
+                    return Container(
+                      margin: const EdgeInsets.all(6),
+                      width: 20.0,
+                      height: 20.0,
+                      child: const CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (playing != true) {
+                    return InkWell(
+                      onTap: audioPlayer.play,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: const BoxDecoration(
+                          color: primary3,
+                          shape: BoxShape.circle
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.play_arrow, size: 16,),
+                      ),
+                    );
+                  } else if (processingState != ProcessingState.completed) {
+                    return InkWell(
+                      onTap: audioPlayer.pause,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: const BoxDecoration(
+                          color: primary3,
+                          shape: BoxShape.circle
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.pause, size: 16,),
+                      ),
+                    );
+                  } else {
+                    return InkWell(
+                      onTap: () => audioPlayer.seek(Duration.zero),
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: const BoxDecoration(
+                          color: primary3,
+                          shape: BoxShape.circle
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.replay, size: 16,),
+                      ),
+                    );
+                  }
+                },
               ),
-            )
-          )
+              const SizedBox(width: 10,),
+              Container(
+                width: 80,
+                height: 26,
+                margin: const EdgeInsets.only(top: 5, bottom: 5),
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: StreamBuilder<WaveformProgress>(
+                  stream: progressStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Center(
+                        child: Text(
+                          'Not load waveforms',
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    final progress = snapshot.data?.progress ?? 0.0;
+                    final waveform = snapshot.data?.waveform;
+                    if (waveform == null) {
+                      return Center(
+                        child: Text(
+                          '${(100 * progress).toInt()}%',
+                        ),
+                      );
+                    }
+                    return AudioWaveformWidget(
+                      waveform: waveform,
+                      start: Duration.zero,
+                      duration: waveform.duration,
+                      waveColor: blue2,
+                      strokeWidth: 2,
+                      pixelsPerStep: 3,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10,),
+              StreamBuilder<PositionData>(
+                stream: _positionDataStream,
+                builder: (context, snapshot) {
+                  return Container(
+                    margin: const EdgeInsets.only(right: 55),
+                    child: Text(_printDuration(snapshot.data?.duration ?? Duration.zero ), 
+                      style: TextStyle(color: widget.textColor, fontSize: 12),
+                    )
+                  );
+                },
+              ),
+            ],
+          ),
         ),
         widget.isMe ? Positioned(
           bottom: 4,
@@ -500,6 +638,13 @@ class _AudioMessageState extends ConsumerState<AudioMessage> {
         ) : const SizedBox(),
       ],
     );
+  }
+
+  String _printDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${duration.inHours > 0 ? '${twoDigits(duration.inHours)}:' : ''}$twoDigitMinutes:$twoDigitSeconds";
   }
 }
 

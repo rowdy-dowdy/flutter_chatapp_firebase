@@ -229,6 +229,7 @@ class MessageBottomBarState extends ConsumerState<MessageBottomBar> {
   }
 
   void sendTextMessage() {
+    if (textMessageController.text == "") return;
     ref.read(chatControllerProvider)  
       .sendTextMessage(context: context, text: textMessageController.text.trim(), receiverUserId: widget.id);
 
@@ -426,8 +427,6 @@ class _MessageBodyChatState extends ConsumerState<MessageBodyChat> {
               || index == snapshot.data!.length - 1) {
               isLast = true;
             }
-
-            if (message.type != MessageEnum.audio) return Container();
 
             return CustomBubbleChat(
               message: message.text,

@@ -68,7 +68,7 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
                     ],
                   ),
                 ),
-                ],
+              ],
             ),
             const Positioned(
               bottom: 15,

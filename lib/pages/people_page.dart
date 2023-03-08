@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
+import 'package:flutter_chatapp_firebase/pages/home_page.dart';
 import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/widgets/main_bottom_navbar.dart';
@@ -21,84 +22,13 @@ class PeoplePage extends ConsumerWidget {
           children: const [
             BodyListContact(),
             Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
+              bottom: 15,
+              left: 15,
+              right: 15,
               child: MainBottomNavBar(),
             )
           ],
         )
-      ),
-    );
-  }
-}
-
-class HomeAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
-  final double height;
-  const HomeAppBar({this.height = 60, super.key});
-
-  @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _HomeAppBarState();
-  
-  @override
-  // TODO: implement preferredSize
-  Size get preferredSize => Size.fromHeight(height);
-}
-
-class _HomeAppBarState extends ConsumerState<HomeAppBar> {
-  final searchController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      flexibleSpace: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(50)
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  children: [
-                    const Icon(Icons.search_rounded),
-                    const SizedBox(width: 5,),
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        // keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          hintText: 'Search chat or something here',
-                          isDense: true,                      // Added this
-                          contentPadding: EdgeInsets.all(0)
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 5,),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 10,),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                shape: BoxShape.circle
-              ),
-              alignment: Alignment.center,
-              child: const Icon(Icons.notifications)
-            )
-          ],
-        ),
       ),
     );
   }
@@ -111,12 +41,13 @@ class BodyListContact extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+              margin: const EdgeInsets.only(left: 5),
               decoration: BoxDecoration(
                 color: blue3,
                 borderRadius: BorderRadius.circular(4)

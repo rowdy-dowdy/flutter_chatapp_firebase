@@ -7,6 +7,7 @@ class CallModel {
   final String receiverPic;
   final String callId;
   final bool hasDialled;
+  
   CallModel({
     required this.callerId,
     required this.callerName,

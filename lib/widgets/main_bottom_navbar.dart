@@ -5,25 +5,26 @@ import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MainBottomNavBar extends ConsumerWidget {
   const MainBottomNavBar({super.key});
 
   static const menu = <Map>[
     {
-      "icon": Icons.message_rounded,
+      "icon": FontAwesomeIcons.solidComments,
       "path": "/",
     },
     {
-      "icon": Icons.call_rounded,
+      "icon": FontAwesomeIcons.phone,
       "path": "/calls",
     },
     {
-      "icon": Icons.people_rounded,
+      "icon": FontAwesomeIcons.peopleArrows,
       "path": "/people",
     },
     {
-      "icon": Icons.settings,
+      "icon": FontAwesomeIcons.gears,
       "path": "/settings",
     },
   ];
@@ -34,7 +35,7 @@ class MainBottomNavBar extends ConsumerWidget {
     final location = ref.watch(routerProvider).location;
     
     return Container(
-      height: 60,
+      height: 54,
       width: double.infinity,
       // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
@@ -54,20 +55,20 @@ class MainBottomNavBar extends ConsumerWidget {
                   badgeContent: const Text("3", style: TextStyle(color: Colors.white),),
                   child: Icon(
                     menu[i]['icon'],
-                    size: 30,
+                    size: 24,
                     color: location != menu[i]['path'] ? primary2 : Colors.white
                   ),
                 )
-                : Icon(
+                : FaIcon(
                   menu[i]['icon'],
-                  size: 30,
+                  size: 24,
                   color: location != menu[i]['path'] ? primary2 : Colors.white
                 ),
             ),
             if (i < menu.length - 1) ...[
               Container(
                 width: 2,
-                height: 30,
+                height: 24,
                 decoration: const BoxDecoration(color: primary2),
               )
             ]

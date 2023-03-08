@@ -65,6 +65,10 @@ dependencies:
   audio_waveforms: ^1.0.3
   flutter_cache_manager: ^3.3.0
   just_audio: ^0.9.31
+  rxdart: ^0.27.7
+  just_waveform: ^0.0.4
+  font_awesome_flutter: ^10.4.0
+  flutter_webrtc: ^0.9.24
 
 dev_dependencies:
   flutter_test:

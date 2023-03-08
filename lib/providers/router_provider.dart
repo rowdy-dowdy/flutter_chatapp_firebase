@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/layouts/main_layout.dart';
 import 'package:flutter_chatapp_firebase/models/auth_model.dart';
+import 'package:flutter_chatapp_firebase/pages/call/call_detail.dart';
 import 'package:flutter_chatapp_firebase/pages/call_page.dart';
 import 'package:flutter_chatapp_firebase/pages/home_page.dart';
 import 'package:flutter_chatapp_firebase/pages/landing_page.dart';
@@ -87,6 +88,13 @@ class RouterNotifier extends ChangeNotifier {
           name: 'calls',
           path: '/calls',
           builder: (context, state) => const CallPage(),
+          routes: [
+            GoRoute(
+              name: 'call-detail',
+              path: ':id',
+              builder: (context, state) => CallDetailPage(id: state.params['id']!),
+            ),
+          ]
         ),
         GoRoute(
           name: 'people',
@@ -107,7 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/loading',
+    initialLocation: '/calls/fasdf',
     debugLogDiagnostics: true,
     refreshListenable: router,
     redirect: router._redirectLogin,
