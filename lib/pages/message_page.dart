@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_chatapp_firebase/models/message_model.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
+import 'package:flutter_chatapp_firebase/providers/call_provider.dart';
 import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/auth_repository.dart';
 import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
@@ -59,15 +60,17 @@ class MessageAppBar extends ConsumerStatefulWidget implements PreferredSizeWidge
 
 class _MessageAppBarState extends ConsumerState<MessageAppBar> {
   final searchController = TextEditingController();
+  static UserModel? receiverUserData;
 
   void makeCall(WidgetRef ref, BuildContext context) {
-    // ref.read(callControllerProvider).makeCall(
-    //   context,
-    //   name,
-    //   uid,
-    //   profilePic,
-    //   isGroupChat,
-    // );
+    if (receiverUserData != null) {
+      ref.read(callControllerProvider).makeCall(
+        context,
+        receiverUserData!.name,
+        receiverUserData!.uid,
+        receiverUserData!.profilePic,
+      );
+    }
   }
 
   @override
@@ -121,6 +124,9 @@ class _MessageAppBarState extends ConsumerState<MessageAppBar> {
           if (snapshot.hasError) {
             return const Text('Error');
           }
+
+          receiverUserData = snapshot.data!;
+          
           return Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,

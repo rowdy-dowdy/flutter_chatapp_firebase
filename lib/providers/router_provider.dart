@@ -115,7 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/calls/fasdf',
+    initialLocation: '/loading',
     debugLogDiagnostics: true,
     refreshListenable: router,
     redirect: router._redirectLogin,

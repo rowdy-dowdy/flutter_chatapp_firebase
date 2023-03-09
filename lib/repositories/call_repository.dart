@@ -40,7 +40,7 @@ class CallRepository {
   }
   
   Stream<DocumentSnapshot> get callStream =>
-    firestore.collection('call').doc(auth.currentUser!.uid).snapshots();
+    firestore.collection('calls').doc(auth.currentUser!.uid).snapshots();
 
   void makeCall(
     CallModel senderCallData,
@@ -49,11 +49,11 @@ class CallRepository {
   ) async {
     try {
       await firestore
-        .collection('call')
+        .collection('calls')
         .doc(senderCallData.callerId)
         .set(senderCallData.toMap());
       await firestore
-        .collection('call')
+        .collection('calls')
         .doc(senderCallData.receiverId)
         .set(receiverCallData.toMap());
 

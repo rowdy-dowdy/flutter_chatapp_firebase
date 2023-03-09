@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/models/call_model.dart';
 import 'package:flutter_chatapp_firebase/models/chat_model.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/repositories/call_repository.dart';
 import 'package:flutter_chatapp_firebase/repositories/chat_repository.dart';
+import 'package:flutter_chatapp_firebase/services/signaling.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,11 +30,16 @@ class CallController {
     return callRepository.getCalls();
   }
 
+  Stream<DocumentSnapshot> get callStream => callRepository.callStream;
+
   void makeCall(BuildContext context, String receiverName, String receiverUid,
-      String receiverProfilePic, bool isGroupChat) {
+      String receiverProfilePic) async {
         
     final userData = ref.watch(authControllerProvider).user;
     String callId = const Uuid().v1();
+
+    final roomId = await ref.read(signalingProvider).createRoom();
+
     CallModel senderCallData = CallModel(
       callerId: userData!.uid,
       callerName: userData.name,
@@ -41,7 +48,8 @@ class CallController {
       receiverName: receiverName,
       receiverPic: receiverProfilePic,
       callId: callId,
-      hasDialled: true,
+      status: CallEnum.startCalling,
+      roomId: roomId,
     );
 
     CallModel receiverCallData = CallModel(
@@ -52,10 +60,13 @@ class CallController {
       receiverName: receiverName,
       receiverPic: receiverProfilePic,
       callId: callId,
-      hasDialled: false,
+      status: CallEnum.startCalling,
+      roomId: roomId,
     );
 
-    callRepository.makeCall(senderCallData, context, receiverCallData);
+    if (context.mounted) {
+      callRepository.makeCall(senderCallData, context, receiverCallData);
+    }
   }
 }
 
