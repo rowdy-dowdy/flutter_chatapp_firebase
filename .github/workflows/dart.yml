@@ -29,6 +29,9 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --debug --split-per-abi
       - run: |
+          cd ios
+          arch -x86_64 pod install
+          cd ../
           flutter build ios --no-codesign
           cd build/ios/iphoneos
           mkdir Payload
