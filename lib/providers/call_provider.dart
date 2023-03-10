@@ -38,7 +38,7 @@ class CallController {
     final userData = ref.watch(authControllerProvider).user;
     String callId = const Uuid().v1();
 
-    final roomId = await ref.read(signalingProvider).createRoom();
+    final roomId = const Uuid().v1();
 
     CallModel senderCallData = CallModel(
       callerId: userData!.uid,
@@ -67,6 +67,14 @@ class CallController {
     if (context.mounted) {
       callRepository.makeCall(senderCallData, context, receiverCallData);
     }
+  }
+
+  void endCall(CallModel call, BuildContext context) async {
+    callRepository.endCall(call, call, context);
+  }
+
+  void calling(CallModel call, BuildContext context) async {
+    callRepository.calling(call, call, context);
   }
 }
 

@@ -33,7 +33,7 @@ class CallModel {
   final String receiverId;
   final String receiverName;
   final String receiverPic;
-  final CallEnum status;
+  late final CallEnum status;
   final String roomId;
   
   CallModel({
@@ -79,4 +79,9 @@ class CallModel {
   String toJson() => json.encode(toMap());
 
   factory CallModel.fromJson(String source) => CallModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+
+  CallModel copyValueWithStatus (status) {
+    return CallModel(callerId: callerId, callerName: callerName, callerPic: callerPic, receiverId: receiverId, receiverName: receiverName, receiverPic: receiverPic, callId: callId, status: status, roomId: roomId);
+  }
 }

@@ -37,8 +37,8 @@ class Signaling {
   StreamStateCallback? onAddRemoteStream;
   // RTCVideoRenderer remoteRenderer
 
-  Future<String> createRoom() async {
-    DocumentReference roomRef = firestore.collection('rooms').doc();
+  Future<void> createRoom(RTCVideoRenderer remoteVideo, String roomId2) async {
+    DocumentReference roomRef = firestore.collection('rooms').doc(roomId2);
 
     print('Create PeerConnection with configuration: $configuration');
 
@@ -117,12 +117,11 @@ class Signaling {
     });
     // Listen for remote ICE candidates above
 
-    return roomId;
+    // return roomId;
   }
 
-  Future<void> joinRoom(String roomId, RTCVideoRenderer remoteVideo) async {
-    FirebaseFirestore db = FirebaseFirestore.instance;
-    DocumentReference roomRef = db.collection('rooms').doc('$roomId');
+  Future<void> joinRoom(RTCVideoRenderer remoteVideo, String roomId) async {
+    DocumentReference roomRef = firestore.collection('rooms').doc(roomId);
     var roomSnapshot = await roomRef.get();
     print('Got room ${roomSnapshot.exists}');
 

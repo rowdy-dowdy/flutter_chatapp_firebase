@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -65,14 +66,41 @@ class CallRepository {
     }
   }
 
-  void endCall(
-    String callerId,
-    String receiverId,
+  void calling(
+    CallModel senderCallData,
+    CallModel receiverCallData,
     BuildContext context,
   ) async {
     try {
-      await firestore.collection('call').doc(callerId).delete();
-      await firestore.collection('call').doc(receiverId).delete();
+      CallModel senderCallDataValue =  senderCallData.copyValueWithStatus(CallEnum.calling);
+      CallModel receiverCallDataValue =  receiverCallData.copyValueWithStatus(CallEnum.calling);
+
+      await firestore.collection('call').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
+      await firestore.collection('call').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
+    } catch (e) {
+      showSnackBar(context: context, content: e.toString());
+    }
+  }
+
+  void endCall(
+    CallModel senderCallData,
+    CallModel receiverCallData,
+    BuildContext context,
+  ) async {
+    try {
+      CallModel senderCallDataValue =  senderCallData.copyValueWithStatus(CallEnum.stoppedCalling);
+      CallModel receiverCallDataValue =  receiverCallData.copyValueWithStatus(CallEnum.stoppedCalling);
+
+      await firestore.collection('call').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
+      await firestore.collection('call').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
+
+      Timer(const Duration(seconds: 5), () {
+        if (context.mounted) {
+          context.go('/');
+        }
+        firestore.collection('call').doc(senderCallData.callerId).delete();
+        firestore.collection('call').doc(receiverCallData.receiverId).delete();
+      });
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }

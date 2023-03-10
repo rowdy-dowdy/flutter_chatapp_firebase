@@ -21,28 +21,27 @@ class CallDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userData = ref.watch(authControllerProvider).user;
-    return CallingDetail();
+    // return CallingDetail();
     return StreamBuilder<DocumentSnapshot>(
       stream: ref.watch(callControllerProvider).callStream,
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data!.data() != null) {
           CallModel call = CallModel.fromMap(snapshot.data!.data() as Map<String, dynamic>);
 
+          var isMeCall = false;
+
+          if (userData!.uid == call.callId) {
+            isMeCall = true;
+          }
+
           if (call.status == CallEnum.stoppedCalling) {
-            Timer(Duration(seconds: 5), () => print('done'));
             return CallDetailEnd(call: call);
           }
           else if (call.status == CallEnum.startCalling) {
-            var isMeCall = false;
-
-            if (userData!.uid == call.callId) {
-              isMeCall = true;
-            }
-            
             return CallDetailNew(call: call, isMeCall: isMeCall);
           }
           else {
-            return CallingDetail();
+            return CallingDetail(call: call, isMeCall: isMeCall);
           }
         }
 
@@ -111,25 +110,31 @@ class CallDetailNew extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle
+                InkWell(
+                  onTap: () => ref.watch(callControllerProvider).endCall(call, context),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.call_end_rounded, color: Colors.white,),
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.call_end_rounded, color: Colors.white,),
                 ),
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: primary2,
-                    shape: BoxShape.circle
+                InkWell(
+                  onTap: () => ref.watch(callControllerProvider).calling(call, context),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: primary2,
+                      shape: BoxShape.circle
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.call, color: Colors.white,),
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.call, color: Colors.white,),
                 )
               ],
             ),
@@ -188,17 +193,19 @@ class CallDetailEnd extends ConsumerWidget {
 }
 
 class CallingDetail extends ConsumerWidget {
-  const CallingDetail({super.key});
+  final CallModel call;
+  final bool isMeCall;
+  const CallingDetail({required this.call, required this.isMeCall, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Scaffold(
+    return Scaffold(
       appBar: GetAppBar(),
       backgroundColor: primary,
       body: SafeArea(
-        child: GetBody()
+        child: GetBody(call:call, isMeCall: isMeCall)
       ),
-      bottomNavigationBar: GetBottomBar(),
+      bottomNavigationBar: GetBottomBar(call:call),
     );
   }
 }
@@ -285,7 +292,8 @@ class _GetAppBarState extends ConsumerState<GetAppBar> {
 }
 
 class GetBottomBar extends ConsumerWidget {
-  const GetBottomBar({super.key});
+  final CallModel call;
+  const GetBottomBar({required this.call, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -315,15 +323,18 @@ class GetBottomBar extends ConsumerWidget {
             alignment: Alignment.center,
             child: const FaIcon(FontAwesomeIcons.microphoneSlash, color: primary2,),
           ),
-          Container(
-            width: 60,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: primary3
+          InkWell(
+            onTap: () => ref.watch(callControllerProvider).endCall(call, context),
+            child: Container(
+              width: 60,
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: primary3
+              ),
+              alignment: Alignment.center,
+              child: const FaIcon(Icons.call_end_rounded, color: Colors.red,),
             ),
-            alignment: Alignment.center,
-            child: const FaIcon(Icons.call_end_rounded, color: Colors.red,),
           )
         ],
       ),
@@ -332,7 +343,9 @@ class GetBottomBar extends ConsumerWidget {
 }
 
 class GetBody extends ConsumerStatefulWidget {
-  const GetBody({super.key});
+  final CallModel call;
+  final bool isMeCall;
+  const GetBody({required this.call, required this.isMeCall, super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _GetBodyState();
@@ -345,26 +358,33 @@ class _GetBodyState extends ConsumerState<GetBody> {
 
   @override
   void initState() {
-    super.initState();
-
     _localRender.initialize();
     _remoteRender.initialize();
 
-    signaling = ref.watch(signalingProvider);
+    signaling = ref.read(signalingProvider);
 
     signaling!.onAddRemoteStream = ((stream) {
       _remoteRender.srcObject = stream;
       setState(() {});
     });
 
+    if (widget.isMeCall) {
+      signaling!.createRoom(_remoteRender, widget.call.roomId);
+    }
+    else {
+      signaling!.joinRoom(_remoteRender, widget.call.roomId);
+    }
+
     signaling!.openUserMedia(_localRender, _remoteRender);
     setState(() {});
+    super.initState();
   }
 
   @override
   void dispose() {
     _localRender.dispose();
     _remoteRender.dispose();
+    signaling!.hangUp(_localRender);
     super.dispose();
   }
 
