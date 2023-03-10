@@ -7,6 +7,7 @@ import 'package:flutter_chatapp_firebase/models/call_model.dart';
 import 'package:flutter_chatapp_firebase/models/user_model.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
 import 'package:flutter_chatapp_firebase/providers/call_provider.dart';
+import 'package:flutter_chatapp_firebase/repositories/firestore_repository.dart';
 import 'package:flutter_chatapp_firebase/services/signaling.dart';
 import 'package:flutter_chatapp_firebase/utils/color.dart';
 import 'package:flutter_chatapp_firebase/widgets/main_bottom_navbar.dart';
@@ -35,6 +36,14 @@ class CallDetailPage extends ConsumerWidget {
           }
 
           if (call.status == CallEnum.stoppedCalling) {
+            Timer(const Duration(seconds: 1), () {
+              print('change page');
+              if (context.mounted) {
+                context.go('/');
+              }
+              FirebaseFirestore.instance.collection('calls').doc(call.callerId).delete();
+              FirebaseFirestore.instance.collection('calls').doc(call.receiverId).delete();
+            });
             return CallDetailEnd(call: call);
           }
           else if (call.status == CallEnum.startCalling) {
@@ -156,17 +165,22 @@ class CallDetailEnd extends ConsumerWidget {
       body: Stack(
         children: [
           Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(call.callerPic)
+                image: NetworkImage(call.callerPic),
+                fit: BoxFit.cover,
               )
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
               child: Container(
                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.0)),
-                child: Center(
+                child: SafeArea(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
                       Container(
                         width: 80,
@@ -202,10 +216,8 @@ class CallingDetail extends ConsumerWidget {
     return Scaffold(
       appBar: GetAppBar(),
       backgroundColor: primary,
-      body: SafeArea(
-        child: GetBody(call:call, isMeCall: isMeCall)
-      ),
-      bottomNavigationBar: GetBottomBar(call:call),
+      body: GetBody(call:call, isMeCall: isMeCall),
+      // bottomNavigationBar: GetBottomBar(call:call),
     );
   }
 }
@@ -293,7 +305,10 @@ class _GetAppBarState extends ConsumerState<GetAppBar> {
 
 class GetBottomBar extends ConsumerWidget {
   final CallModel call;
-  const GetBottomBar({required this.call, super.key});
+  static Signaling? signaling;
+  final RTCVideoRenderer localRender;
+  final RTCVideoRenderer remoteRender;
+  const GetBottomBar({required this.call, required this.localRender, required this.remoteRender, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -309,12 +324,17 @@ class GetBottomBar extends ConsumerWidget {
             alignment: Alignment.center,
             child: const FaIcon(FontAwesomeIcons.cameraRotate, color: primary4,),
           ),
-          Container(
-            width: 60,
-            height: 40,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
-            alignment: Alignment.center,
-            child: const FaIcon(FontAwesomeIcons.videoSlash, color: primary2,),
+          InkWell(
+            onTap: () {
+              ref.watch(signalingProvider).openUserMedia(localRender, remoteRender);
+            },
+            child: Container(
+              width: 60,
+              height: 40,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
+              alignment: Alignment.center,
+              child: const FaIcon(FontAwesomeIcons.videoSlash, color: primary2,),
+            ),
           ),
           Container(
             width: 60,
@@ -358,25 +378,7 @@ class _GetBodyState extends ConsumerState<GetBody> {
 
   @override
   void initState() {
-    _localRender.initialize();
-    _remoteRender.initialize();
-
-    signaling = ref.read(signalingProvider);
-
-    signaling!.onAddRemoteStream = ((stream) {
-      _remoteRender.srcObject = stream;
-      setState(() {});
-    });
-
-    if (widget.isMeCall) {
-      signaling!.createRoom(_remoteRender, widget.call.roomId);
-    }
-    else {
-      signaling!.joinRoom(_remoteRender, widget.call.roomId);
-    }
-
-    signaling!.openUserMedia(_localRender, _remoteRender);
-    setState(() {});
+    initSignaling();
     super.initState();
   }
 
@@ -388,43 +390,81 @@ class _GetBodyState extends ConsumerState<GetBody> {
     super.dispose();
   }
 
+  void initSignaling() async {
+    _localRender.initialize();
+    _remoteRender.initialize();
+
+    signaling = ref.read(signalingProvider);
+
+    ref.read(signalingProvider).onAddRemoteStream = ((stream) {
+      _remoteRender.srcObject = stream;
+      setState(() {});
+    });
+
+    if (widget.isMeCall) {
+      await ref.read(signalingProvider).createRoom(_remoteRender, widget.call.roomId);
+    }
+    else {
+      ref.read(signalingProvider).joinRoom(_remoteRender, widget.call.roomId);
+    }
+
+    print(signaling);
+
+    // Timer(const Duration(seconds: 1), () {
+    // });
+    // ref.read(signalingProvider).openUserMedia(_localRender, _remoteRender);
+
+    setState(() {
+      signaling!.openUserMedia(_localRender, _remoteRender);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 15),
-          decoration: BoxDecoration(
-            color: primary4,
-            borderRadius: BorderRadius.circular(10)
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: RTCVideoView(
-            _remoteRender,
-            objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-          ),
-        ),
-        Positioned(
-          bottom: 15,
-          right: 30,
-          child: Container(
-            width: 100,
-            height: 150,
-            decoration: BoxDecoration(
-              color: primary,
-              borderRadius: BorderRadius.circular(10)
+    return SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                    color: primary4,
+                    borderRadius: BorderRadius.circular(10)
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: RTCVideoView(
+                    _remoteRender,
+                    objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                  ),
+                ),
+                Positioned(
+                  bottom: 15,
+                  right: 30,
+                  child: Container(
+                    width: 100,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(10)
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    // alignment: Alignment.center,
+                    child: RTCVideoView(
+                      _localRender, 
+                      mirror: true,
+                      objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                    ),
+                  ),
+                )
+              ],
             ),
-            clipBehavior: Clip.hardEdge,
-            // alignment: Alignment.center,
-            child: RTCVideoView(
-              _localRender, 
-              mirror: true,
-              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-            ),
           ),
-        )
-      ],
+          GetBottomBar(call: widget.call, localRender: _localRender, remoteRender: _remoteRender,)
+        ],
+      ),
     );
   }
 }

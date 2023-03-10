@@ -75,8 +75,8 @@ class CallRepository {
       CallModel senderCallDataValue =  senderCallData.copyValueWithStatus(CallEnum.calling);
       CallModel receiverCallDataValue =  receiverCallData.copyValueWithStatus(CallEnum.calling);
 
-      await firestore.collection('call').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
-      await firestore.collection('call').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
+      await firestore.collection('calls').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
+      await firestore.collection('calls').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
@@ -91,16 +91,8 @@ class CallRepository {
       CallModel senderCallDataValue =  senderCallData.copyValueWithStatus(CallEnum.stoppedCalling);
       CallModel receiverCallDataValue =  receiverCallData.copyValueWithStatus(CallEnum.stoppedCalling);
 
-      await firestore.collection('call').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
-      await firestore.collection('call').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
-
-      Timer(const Duration(seconds: 5), () {
-        if (context.mounted) {
-          context.go('/');
-        }
-        firestore.collection('call').doc(senderCallData.callerId).delete();
-        firestore.collection('call').doc(receiverCallData.receiverId).delete();
-      });
+      await firestore.collection('calls').doc(senderCallData.callerId).set(senderCallDataValue.toMap());
+      await firestore.collection('calls').doc(receiverCallData.receiverId).set(receiverCallDataValue.toMap());
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
