@@ -13,6 +13,8 @@ import 'package:flutter_chatapp_firebase/pages/people_page.dart';
 import 'package:flutter_chatapp_firebase/pages/setting_page.dart';
 import 'package:flutter_chatapp_firebase/pages/user_info_page.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
+import 'package:flutter_chatapp_firebase/providers/call_provider.dart';
+import 'package:flutter_chatapp_firebase/providers/chat_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 

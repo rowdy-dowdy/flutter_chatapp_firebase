@@ -82,3 +82,17 @@ final callControllerProvider = Provider<CallController>((ref) {
   final callRepository = ref.watch(callRepositoryProvider);
   return CallController(callRepository: callRepository, ref: ref);
 });
+
+final callStreamProvider = StreamProvider((ref) {
+  final call = ref.watch(callControllerProvider).callStream;
+  return call;
+});
+
+final callStateProvider = Provider((ref) {
+  final state = ref.watch(callControllerProvider).callStream.map((event) {
+    CallModel call = CallModel.fromMap(event.data() as Map<String, dynamic>);
+    return call;
+  });
+
+  return state;
+});

@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chatapp_firebase/providers/auth_provider.dart';
+import 'package:flutter_chatapp_firebase/providers/call_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
@@ -60,6 +61,12 @@ class _MainLayoutState extends ConsumerState<MainLayout>  with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(callControllerProvider, (previous, next) { 
+      print('-----------------------------------------------------------------');
+      print(previous);
+      print(next);
+      print('-----------------------------------------------------------------');
+    });
     return widget.child;
   }
 }
